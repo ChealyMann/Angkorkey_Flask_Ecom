@@ -1,0 +1,187 @@
+{# 1. TEMPLATE INHERITANCE #}
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+{# 2. EXTERNAL ASSETS #}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+{# 3. CUSTOM STYLES #}
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    .akk-input {
+        border: 2px solid #e5e7eb;
+        background-color: #f9fafb;
+    }
+
+    .akk-input:focus {
+        box-shadow: none;
+        background-color: #fff !important;
+        border-color: #dc2626 !important;
+        ring: 0;
+    }
+
+    .border-red-accent {
+        border-top: 4px solid #dc2626;
+    }
+</style>
+
+<div class="font-khmer w-auto mx-5 mt-4">
+
+    {# 4. PAGE HEADER #}
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                <i class="fa-solid fa-user-plus me-2 text-danger"></i>បន្ថែមអ្នកប្រើប្រាស់ (Add User)
+            </h2>
+        </div>
+    </div>
+
+    {# 5. NAVIGATION #}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="p-3 shadow-sm border rounded bg-white">
+                <a href="{{ url_for('user.admin_user') }}" class="text-decoration-none">
+                    <button class="btn btn-outline-dark">
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+                        <span>ត្រឡប់ក្រោយ</span>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# 6. MAIN FORM #}
+    <form action="{{ url_for('user.admin_user_add') }}" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="card shadow-sm border-0 border-red-accent p-4">
+            <div class="row g-4">
+
+                {# 6a. LEFT COLUMN: Username & Image #}
+                <div class="col-lg-6">
+                    <div class="form-floating mb-4">
+                        {{ form.username(class="form-control akk-input rounded", id="floatingInput",
+                        placeholder="Username") }}
+                        <label for="floatingInput" class="text-muted">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
+                        {% for error in form.username.errors %}
+                        <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4 mt-4">
+                        {{ form.image(class="d-none", id="image_upload", onchange="previewImage(event)", accept=".jpg,
+                        .png, .webp, .jpeg") }}
+
+                        <label for="image_upload"
+                            class="upload-area w-100 p-3 text-center border border-2 border-secondary border-opacity-25 rounded-3 bg-light shadow-sm"
+                            style="border-style: dashed !important; cursor: pointer;">
+                            <div class="mb-1">
+                                <i class="bi bi-cloud-arrow-up-fill text-danger fs-1"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 small text-dark">ចុចដើម្បីដាក់រូបភាព (Upload Image)</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.7rem">JPG, PNG or WEBP</p>
+                        </label>
+
+                        <div id="preview-container" class="mt-3 text-center d-none">
+                            <div class="d-inline-block position-relative border rounded p-1 bg-white shadow-sm">
+                                <img id="image-preview" src="#" alt="Preview" class="d-block rounded"
+                                    style="width: 150px; height: 150px; object-fit: cover;">
+                                <button type="button" onclick="removeImage()"
+                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle shadow"
+                                    style="width: 28px; height: 28px; padding: 0;" title="Delete Image">
+                                    <i class="fas fa-times small"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# 6b. RIGHT COLUMN: Password #}
+                <div class="col-lg-6">
+                    <div class="form-floating h-100">
+                        {{ form.password(class="form-control akk-input rounded", id="floatingPassword",
+                        placeholder="Password") }}
+                        <label for="floatingPassword" class="text-muted">ពាក្យសម្ងាត់ (Password)</label>
+                        {% for error in form.password.errors %}
+                        <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                        <div class="form-text mt-2 ms-1">
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>
+                            Password must be at least 8 characters long.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# 7. ACTION BUTTONS #}
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border rounded bg-white d-flex gap-2">
+                    <button type="submit" id="btn_add" class="btn btn-dark px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-save me-2 text-danger"></i>
+                        រក្សាទុក (Save)
+                    </button>
+
+                    <button class="btn btn-outline-danger px-4 py-2 fw-bold" id="btnClear" type="button">
+                        <i class="fa-solid fa-eraser me-2"></i>
+                        <span>សម្អាត (Clear)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# 8. JAVASCRIPT #}
+<script>
+    function previewImage(event) {
+        var input = event.target;
+        var reader = new FileReader();
+        var previewContainer = document.getElementById("preview-container");
+        var imageField = document.getElementById("image-preview");
+
+        reader.onload = function () {
+            if (reader.readyState == 2) {
+                imageField.src = reader.result;
+                previewContainer.classList.remove("d-none");
+            }
+        }
+
+        if (input.files && input.files[0]) {
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        var input = document.getElementById("image_upload");
+        var previewContainer = document.getElementById("preview-container");
+        var imageField = document.getElementById("image-preview");
+
+        input.value = "";
+        imageField.src = "#";
+        previewContainer.classList.add("d-none");
+    }
+
+    function clearFormFields() {
+        const userInput = document.getElementById('floatingInput');
+        const passwordInput = document.getElementById('floatingPassword');
+
+        if (userInput) userInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+
+        removeImage();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const clearButton = document.getElementById('btnClear');
+        if (clearButton) {
+            clearButton.addEventListener('click', clearFormFields);
+        }
+    });
+</script>
+{% endblock %}

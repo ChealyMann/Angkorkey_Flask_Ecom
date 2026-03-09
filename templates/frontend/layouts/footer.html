@@ -1,0 +1,53 @@
+<footer
+    class="hidden md:block fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-[#09090b]/90 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-center text-xs text-gray-500 ">
+        <div class="flex items-center gap-6">
+            <span class="text-white font-bold tracking-tight text-sm">ANGKOR<span
+                    class="text-gray-500">KEY</span></span>
+            <span>&copy; 2026 Angkor Key. All rights reserved.</span>
+        </div>
+        {# <div class="flex items-center gap-6">
+            <a href="#" class="hover:text-white transition">Terms</a>
+            <a href="#" class="hover:text-white transition">Privacy</a>
+            <a href="#" class="hover:text-white transition">Shipping</a>
+        </div> #}
+    </div>
+</footer>
+
+{% if request.endpoint != 'home.product_detail' %}
+<div
+    class="fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-xl border-t border-white/10 md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
+    <div class="grid grid-cols-4 h-16 items-center">
+        <a href="{{ url_for('home.home') }}"
+            class="flex flex-col items-center justify-center {{ 'text-white' if request.endpoint == 'home.home' else 'text-gray-500 hover:text-white' }} group">
+            <svg class="h-6 w-6 group-active:scale-90 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span class="text-[10px] font-medium mt-1">Home</span>
+        </a>
+        <a href="{{ url_for('home.products') }}"
+            class="flex flex-col items-center justify-center {{ 'text-white' if request.endpoint == 'home.products' else 'text-gray-500 hover:text-white' }} group">
+            <svg class="h-6 w-6 group-active:scale-90 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span class="text-[10px] font-medium mt-1">Shop</span>
+        </a>
+        <a href="{{ url_for('home.all_categories') }}" class="flex flex-col items-center justify-center {{ 'text-white' if request.endpoint == 'home.all_categories' else 'text-gray-500 hover:text-white' }} group">
+            <svg class="h-6 w-6 group-active:scale-90 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span class="text-[10px] font-medium mt-1">Category</span>
+        </a>
+        <a href="{{ url_for('home.promotions') }}" class="flex flex-col items-center justify-center {{ 'text-white' if request.endpoint == 'home.promotions' else 'text-gray-500 hover:text-white' }} group">
+            <svg class="h-6 w-6 group-active:scale-90 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <span class="text-[10px] font-medium mt-1">Promotion</span>
+        </a>
+    </div>
+</div>
+{% endif %}

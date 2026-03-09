@@ -1,0 +1,78 @@
+{% extends "backend/auth/base.html" %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+</style>
+
+<div class="font-khmer w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden md:max-w-md m-4 border-t-4 border-red-600">
+    <div class="p-8">
+
+        <div class="flex justify-center mb-6">
+            <img src="{{ url_for('static', filename='logo/sq_logo.jpg') }}" alt="Angkor Key Logo" class="h-20 w-auto object-contain">
+        </div>
+
+        <div class="text-center mb-6">
+            <h2 class="text-2xl leading-tight font-bold text-gray-900">
+                បង្កើតគណនីថ្មី
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">Create your AKK account</p>
+        </div>
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-4">
+                {{ form.username.label(text="ឈ្មោះអ្នកប្រើប្រាស់", class="block text-gray-700 text-sm font-bold mb-2") }}
+                {{ form.username(class="shadow-sm appearance-none border border-gray-300 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all") }}
+                {% for error in form.username.errors %}
+                    <span class="text-red-600 text-xs italic mt-1 block">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                {{ form.phone.label(text="លេខទូរស័ព្ទ", class="block text-gray-700 text-sm font-bold mb-2") }}
+                {{ form.phone(class="shadow-sm appearance-none border border-gray-300 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all") }}
+                {% for error in form.phone.errors %}
+                    <span class="text-red-600 text-xs italic mt-1 block">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                {{ form.password.label(text="ពាក្យសម្ងាត់", class="block text-gray-700 text-sm font-bold mb-2") }}
+                {{ form.password(class="shadow-sm appearance-none border border-gray-300 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all") }}
+                {% for error in form.password.errors %}
+                    <span class="text-red-600 text-xs italic mt-1 block">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="mb-6">
+                {{ form.confirm_password.label(text="បញ្ជាក់ពាក្យសម្ងាត់", class="block text-gray-700 text-sm font-bold mb-2") }}
+                {{ form.confirm_password(class="shadow-sm appearance-none border border-gray-300 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all") }}
+                {% for error in form.confirm_password.errors %}
+                    <span class="text-red-600 text-xs italic mt-1 block">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button type="submit" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline cursor-pointer transition duration-200 shadow-md border-b-4 border-red-600 active:border-b-0 active:mt-1">
+                    ចុះឈ្មោះ
+                </button>
+            </div>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    មានគណនីរួចហើយ?
+                    <a href="{{ url_for('auth.login') }}" class="text-red-600 font-bold hover:text-red-800 hover:underline">
+                        ចូលប្រើនៅទីនេះ
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

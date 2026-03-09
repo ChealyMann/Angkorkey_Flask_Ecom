@@ -1,0 +1,295 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        /* 1. NO SCROLL LAYOUT */
+        .screen-fit-container {
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 2. SCROLLABLE TABLE AREA */
+        .table-scroll-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            border-bottom: 2px solid #000;
+        }
+
+        /* Sticky Header */
+        .table-scroll-area thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* 3. VISIBILITY FIX: Darker & Clearer Table Borders */
+        .table-bordered th,
+        .table-bordered td {
+            border: 2px solid #dee2e6; /* Soft grey for outer containers */
+        }
+
+        .border-light-black {
+            border: 2px solid #dee2e6; /* Soft grey for outer containers */
+        }
+
+        /* 4. AKK THEME COLORS */
+        .akk-header {
+            background-color: #000000 !important;
+            color: white !important;
+            border-bottom: 2px solid #dc2626 !important; /* Red accent line under header */
+        }
+
+        .btn-akk-primary {
+            background-color: #000000;
+            color: white;
+            border: 1px solid black;
+        }
+
+        .btn-akk-primary:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination .active .page-link {
+            background-color: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: white !important;
+        }
+
+        .pagination .page-link {
+            color: #000;
+        }
+
+        /* Hover Effect */
+        .table-hover tbody tr:hover {
+            background-color: #fef2f2 !important; /* Light Red hover */
+        }
+    </style>
+
+    <div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+
+        <div class="flex-shrink-0">
+            <div class="row mb-3">
+                <div class="col">
+                    <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                        <i class="fa-solid fa-layer-group me-2 text-danger"></i>ការគ្រប់គ្រងផលិតផល (Product)
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="p-3 shadow-sm border-light-black rounded bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-muted fs-5">បញ្ជីផលិតផល (List)</span>
+
+                        <div class="dropdown">
+                            <button class="btn btn-akk-primary shadow-sm dropdown-toggle px-4 py-2" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-circle-plus me-2 text-white"></i> <span class="fw-medium">បង្កើតថ្មី (Add New)</span>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2"
+                                style="min-width: 260px;">
+                                <li>
+                                    <h6 class="dropdown-header text-uppercase fw-bold text-muted pb-2"
+                                        style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                        ជ្រើសរើសជម្រើស (Select Action)
+                                    </h6>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item custom-dropdown-item rounded-3 d-flex align-items-center py-2 mb-1"
+                                       href="{{ url_for('product.product_add') }}">
+                                        <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary me-3 d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fa-solid fa-box-open fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-bold text-dark">ផលិតផលថ្មី</span>
+                                            <small class="text-muted" style="font-size: 0.8rem;">Add a brand new
+                                                product</small>
+                                        </div>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card shadow border-0 flex-grow-1 overflow-hidden mb-3">
+            <div class="card-body p-0 d-flex flex-column h-100">
+
+                <div class="table-scroll-area">
+                    <table class="table table-hover table-bordered mb-0 align-middle">
+                        <thead class="akk-header">
+                        <tr>
+                            <th class="text-center py-3 akk-header" style="width: 60px;">
+                                <i class="fa-solid fa-hashtag me-1 text-danger"></i>ID
+                            </th>
+                            <th class="py-3 akk-header" style="width: 190px;">
+                                <i class="fa-solid fa-tag me-1 text-danger"></i>Name
+                            </th>
+                            <th class="py-3 akk-header text-center" style="width: 100px">
+                                <i class="fa-solid fa-image me-1 text-danger"></i>Image
+                            </th>
+                            <th class="py-3 akk-header" style="width: 190px;">
+                                <i class="fa-solid fa-list me-1 text-danger"></i>Category
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 120px;">
+                                <i class="fa-solid fa-dollar-sign me-1 text-danger"></i>Price
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 120px;">
+                                <i class="fa-solid fa-tags me-1 text-danger"></i>Cost
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 120px;">
+                                <i class="fa-solid fa-circle-info me-1 text-danger"></i>Status
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 180px;">
+                                <i class="fa-solid fa-gears me-1 text-danger"></i>Action
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for product in products['list'] %}
+                            <tr>
+                                <td class="text-center fw-bold text-secondary">
+                                    {{ loop.index }}
+                                </td>
+                                <td class="fw-bold text-dark">
+                                    {{ product['name'] }}
+                                </td>
+
+                                <td class="fw-semibold text-center">
+                                    <a href="{{ url_for('product.product_variants', product_id=product.id) }}"
+                                       class="text-decoration-none">
+                                        <div class="border rounded p-1 d-inline-block bg-white shadow-sm"
+                                             style="border-color: #cbd5e1 !important;">
+                                            <img src="{{ url_for('static', filename = 'images/thumb_'+product['image']
+                                                if os.path.exists('static/images/thumb_'+product['image'])
+                                                    else 'images/none.jpg' ) }}"
+                                                 style="width: 50px; height: 50px; object-fit:cover"
+                                                 class="rounded" alt="">
+                                        </div>
+                                    </a>
+                                </td>
+
+                                <td class="fw-semibold text-muted">
+                                    {{ product['category_name'] }}
+                                </td>
+
+                                <td class="text-center fw-bold text-danger">
+                                    ${{ product['price'] }}
+                                </td>
+                                <td class="text-center fw-semibold">
+                                    ${{ product['cost'] }}
+                                </td>
+
+                                <td class="text-center">
+                                    {% if product['status'] == 'false' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>បិទ
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-circle-check me-1"></i>សកម្ម
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('product.product_edit', product_id=product.id) }}">
+                                            <button class="btn btn-outline-dark btn-sm" title="Edit Product">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                        </a>
+                                        <form action="{{ url_for('product.product_delete', product_id=product.id) }}"
+                                              method="post">
+                                            <button class="btn btn-outline-danger btn-sm btn-delete ms-1"
+                                                    title="Delete Product">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-shrink-0 mb-3">
+            <div class=" ">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Total: {{ products['pagination'].total }} Items
+                    </div>
+                    {{ products['pagination'].links }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const products = {{ output | tojson }};
+
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+
+                Swal.fire({
+                    title: "តើអ្នកប្រាកដទេ?",
+                    text: "ទិន្នន័យដែលលុបហើយមិនអាចយកមកវិញបានទេ!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#000000",
+                    cancelButtonColor: "#dc2626",
+                    confirmButtonText: "បាទ/ចាស លុបវា!",
+                    cancelButtonText: "បោះបង់"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    Swal.fire({
+                        title: '{{ "ជោគជ័យ" if category == "success" else "បរាជ័យ" }}',
+                        text: '{{ message }}',
+                        icon: '{{ category }}',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        confirmButtonColor: "#000000"
+                    });
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+
+{% endblock %}

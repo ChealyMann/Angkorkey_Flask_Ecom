@@ -1,0 +1,204 @@
+{# 1. TEMPLATE INHERITANCE #}
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+{# 2. EXTERNAL ASSETS #}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+{# 3. CUSTOM STYLES #}
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    .akk-input {
+        border: 2px solid #e5e7eb;
+        background-color: #f9fafb;
+    }
+
+    .akk-input:focus {
+        box-shadow: none;
+        background-color: #fff !important;
+        border-color: #dc2626 !important;
+        ring: 0;
+    }
+
+    .border-red-accent {
+        border-top: 4px solid #dc2626;
+    }
+</style>
+
+<div class="font-khmer w-auto mx-5 mt-4">
+
+    {# 4. PAGE HEADER #}
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                <i class="fa-solid fa-user-pen me-2 text-danger"></i>កែប្រែអ្នកប្រើប្រាស់ (Edit User)
+            </h2>
+        </div>
+    </div>
+
+    {# 5. NAVIGATION #}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="p-3 shadow-sm border rounded bg-white">
+                <a href="{{ url_for('user.admin_user') }}" class="text-decoration-none">
+                    <button class="btn btn-outline-dark">
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+                        <span>ត្រឡប់ក្រោយ</span>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# 6. MAIN FORM #}
+    <form action="{{ url_for('user.admin_user_edit', user_id=user.id) }}" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="card shadow-sm border-0 border-red-accent p-4">
+            <div class="row g-4">
+
+                {# 6a. LEFT COLUMN: Username & Image #}
+                <div class="col-lg-6">
+                    <div class="form-floating mb-4">
+                        {{ form.username(class="form-control akk-input rounded", id="floatingInput",
+                        placeholder="Username") }}
+                        <label for="floatingInput" class="text-muted">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
+                        {% for error in form.username.errors %}
+                        <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    {# --- Image Upload Section --- #}
+                    <div class="mb-4">
+                        <label class="text-muted small mb-2 d-block">រូបភាព (Image)</label>
+
+                        {{ form.image(class="d-none", id="image_upload", onchange="previewImage(event)", accept=".jpg,
+                        .png, .webp, .jpeg") }}
+
+                        <div id="preview-container" class="text-center mb-3 {{ '' if user.image else 'd-none' }}">
+                            <div class="d-inline-block position-relative border rounded p-1 bg-white shadow-sm">
+                                <img id="image-preview"
+                                    data-original-src="{{ url_for('static', filename='images/resized_' + user.image) if user.image else '' }}"
+                                    src="{{ url_for('static', filename='images/resized_' + user.image) if user.image else url_for('static', filename='images/none.jpg') }}"
+                                    alt="Preview" class="rounded"
+                                    style="width: 150px; height: 150px; object-fit: cover;">
+
+                                <button type="button" id="btn-delete-image" onclick="removeImage()"
+                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle shadow d-none"
+                                    style="width: 28px; height: 28px; padding: 0;" title="Delete Image">
+                                    <i class="fas fa-times small"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <label for="image_upload"
+                            class="upload-area w-100 p-3 text-center rounded text-muted fw-bold border border-2 border-secondary border-opacity-25 bg-light"
+                            style="border-style: dashed !important; cursor: pointer;">
+                            <i class="bi bi-cloud-upload-fill text-danger me-2"></i> ចុចដើម្បីប្តូររូបភាព (Change Image)
+                        </label>
+                    </div>
+                </div>
+
+                {# 6b. RIGHT COLUMN: Password #}
+                <div class="col-lg-6">
+                    <div class="form-floating h-100">
+                        {{ form.password(class="form-control akk-input rounded", id="floatingPassword",
+                        placeholder="Password") }}
+                        <label for="floatingPassword" class="text-muted">ពាក្យសម្ងាត់ថ្មី (New Password)</label>
+                        <div class="form-text mt-2 ms-1 text-muted">
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>
+                            Leave blank to keep the current password.
+                        </div>
+                        {% for error in form.password.errors %}
+                        <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# 7. ACTION BUTTONS #}
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border rounded bg-white d-flex gap-2">
+                    <button type="submit" class="btn btn-dark px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-save me-2 text-danger"></i>
+                        រក្សាទុកការកែប្រែ (Update)
+                    </button>
+
+                    <button class="btn btn-outline-danger px-4 py-2 fw-bold" id="btnClear" type="button">
+                        <i class="fa-solid fa-eraser me-2"></i>
+                        <span>សម្អាត (Clear)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# 8. JAVASCRIPT #}
+<script>
+    function previewImage(event) {
+        var input = event.target;
+        var reader = new FileReader();
+        var previewContainer = document.getElementById("preview-container");
+        var imageField = document.getElementById("image-preview");
+        var deleteBtn = document.getElementById("btn-delete-image");
+
+        reader.onload = function () {
+            if (reader.readyState == 2) {
+                imageField.src = reader.result;
+                previewContainer.classList.remove("d-none");
+                deleteBtn.classList.remove("d-none");
+            }
+        }
+
+        if (input.files && input.files[0]) {
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        var input = document.getElementById("image_upload");
+        var previewContainer = document.getElementById("preview-container");
+        var imageField = document.getElementById("image-preview");
+        var deleteBtn = document.getElementById("btn-delete-image");
+
+        input.value = "";
+        var originalSrc = imageField.getAttribute('data-original-src');
+
+        if (originalSrc && originalSrc !== "") {
+            imageField.src = originalSrc;
+            deleteBtn.classList.add("d-none");
+        } else {
+            imageField.src = "{{ url_for('static', filename='images/none.jpg') }}";
+            // Don't hide container in edit mode if we want to show 'none.jpg' or keep layout stable
+            // But if logic dictates hiding:
+            // previewContainer.classList.add("d-none");
+            deleteBtn.classList.add("d-none");
+        }
+    }
+
+    function clearFormFields() {
+        // Restore original values
+        const userInput = document.getElementById('floatingInput');
+        if (userInput) userInput.value = "{{ user.username }}";
+
+        const passwordInput = document.getElementById('floatingPassword');
+        if (passwordInput) passwordInput.value = "";
+
+        removeImage();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const clearButton = document.getElementById('btnClear');
+        if (clearButton) {
+            clearButton.addEventListener('click', clearFormFields);
+        }
+    });
+</script>
+{% endblock %}

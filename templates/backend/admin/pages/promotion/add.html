@@ -1,0 +1,82 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+        <div class="flex-shrink-0 mb-3">
+            <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                <i class="fa-solid fa-circle-plus me-2 text-danger"></i>បន្ថែមប្រូម៉ូសិនថ្មី (Add Promotion)
+            </h2>
+            <div class="p-3 shadow-sm border rounded bg-white mt-3">
+                <a href="{{ url_for('promotion.promotion') }}" class="btn btn-outline-dark">
+                    <i class="fa-solid fa-arrow-left me-2"></i>ត្រឡប់ក្រោយ (Back)
+                </a>
+            </div>
+        </div>
+
+        <form action="{{ url_for('promotion.promotion_add') }}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-grow-1 overflow-hidden">
+            {{ form.hidden_tag() }}
+            <div class="card shadow-sm border-0 border-red-accent flex-grow-1 overflow-hidden">
+                <div class="card-body p-4 scrollable-card-body">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="form-floating mb-4">
+                                {{ form.title(class="form-control akk-input rounded", id="floatingInputTitle", placeholder="Title") }}
+                                <label for="floatingInputTitle" class="text-muted">ចំណងជើង (Title)</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                {{ form.subtitle(class="form-control akk-input rounded", id="floatingInputSubtitle", placeholder="Subtitle") }}
+                                <label for="floatingInputSubtitle" class="text-muted">ចំណងជើងរង (Subtitle)</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                {{ form.link(class="form-control akk-input rounded", id="floatingInputLink", placeholder="Link") }}
+                                <label for="floatingInputLink" class="text-muted">តំណភ្ជាប់ (Link)</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                {{ form.button_text(class="form-control akk-input rounded", id="floatingInputButtonText", placeholder="Button Text") }}
+                                <label for="floatingInputButtonText" class="text-muted">អត្ថបទប៊ូតុង (Button Text)</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                {{ form.image(class="d-none", id="image_upload", onchange="previewImage(event)") }}
+                                <label for="image_upload" class="upload-area w-100 p-3 text-center border border-2 border-secondary border-opacity-25 rounded-3 bg-light shadow-sm" style="border-style: dashed !important; cursor: pointer;">
+                                    <h6 class="fw-bold mb-0 small text-dark">ចុចដើម្បីដាក់រូបភាព (Upload Image)</h6>
+                                </label>
+                                <div id="preview-container" class="mt-3 text-center d-none">
+                                    <img id="image-preview" src="#" alt="Preview" class="d-block rounded mx-auto" style="width: 150px; height: 150px; object-fit: cover;">
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                {{ form.is_active(class="form-check-input", id="flexSwitchCheckChecked") }}
+                                <label class="form-check-label" for="flexSwitchCheckChecked">បង្ហាញ (Active)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 mt-3 mb-4">
+                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold">រក្សាទុក (Save)</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+            var previewContainer = document.getElementById("preview-container");
+            var imageField = document.getElementById("image-preview");
+
+            reader.onload = function () {
+                if (reader.readyState == 2) {
+                    imageField.src = reader.result;
+                    previewContainer.classList.remove("d-none");
+                }
+            }
+            if (input.files && input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+{% endblock %}

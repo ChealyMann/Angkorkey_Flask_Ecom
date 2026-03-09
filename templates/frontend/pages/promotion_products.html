@@ -1,0 +1,88 @@
+{% extends "frontend/main.html" %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search Bar -->
+    <div class="mb-6">
+        <div class="relative max-w-lg mx-auto md:mx-0">
+            <input type="text" id="searchInput" placeholder="Search promotions..." 
+                class="w-full bg-[#18181b]/50 border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" />
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <!-- Spinner -->
+            <div id="searchSpinner" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden">
+                 <div class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div id="promotionGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 transition-opacity duration-200">
+        {% include 'frontend/layouts/product_grid.html' %}
+    </div>
+
+    <!-- No Results (Hidden by default, shown by JS if empty) -->
+    <div id="noResults" class="hidden text-center py-20">
+        <svg class="mx-auto h-12 w-12 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p class="text-gray-500 text-lg">No matching promotions found.</p>
+    </div>
+
+    {% if not products %}
+    <div id="initialNoData" class="text-center py-20">
+        <svg class="mx-auto h-12 w-12 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <p class="text-gray-500 text-lg">No ACTIVE promotions at the moment.</p>
+        <a href="{{ url_for('home.products') }}" class="inline-block mt-4 text-indigo-400 hover:text-indigo-300 font-medium">Browse all products &rarr;</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const grid = document.getElementById('promotionGrid');
+    const spinner = document.getElementById('searchSpinner');
+    const noResults = document.getElementById('noResults');
+    const initialNoData = document.getElementById('initialNoData');
+    let timeout = null;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        const query = e.target.value;
+        
+        // Show spinner
+        spinner.classList.remove('hidden');
+        grid.style.opacity = '0.5';
+
+        timeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`{{ url_for('home.promotions') }}?ajax=1&search=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                grid.innerHTML = data.html;
+                
+                // Handle Visibility
+                if (data.html.trim().length === 0) {
+                    noResults.classList.remove('hidden');
+                    if(initialNoData) initialNoData.classList.add('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                    if(initialNoData) initialNoData.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error fetching promotions:', error);
+            } finally {
+                spinner.classList.add('hidden');
+                grid.style.opacity = '1';
+            }
+        }, 300); // 300ms debounce
+    });
+</script>
+</div>
+{% endblock %}

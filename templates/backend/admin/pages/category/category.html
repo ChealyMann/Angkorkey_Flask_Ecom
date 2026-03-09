@@ -1,0 +1,221 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        /* 1. NO SCROLL LAYOUT */
+        .screen-fit-container {
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 2. SCROLLABLE TABLE AREA */
+        .table-scroll-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            border-bottom: 2px solid #000;
+        }
+
+        /* Sticky Header */
+        .table-scroll-area thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* 3. VISIBILITY FIX: Darker Borders */
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid black !important;
+        }
+
+        /* 4. AKK THEME COLORS */
+        .akk-header {
+            background-color: #000000 !important;
+            color: white !important;
+            border-bottom: 2px solid #dc2626 !important;
+        }
+
+        .btn-akk-primary {
+            background-color: #000000;
+            color: white;
+            border: 1px solid black;
+        }
+
+        .btn-akk-primary:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        /* Hover Effect */
+        .table-hover tbody tr:hover {
+            background-color: #fef2f2 !important; /* Light Red */
+        }
+    </style>
+
+    <div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+
+        <div class="flex-shrink-0">
+            <div class="row mb-3">
+                <div class="col">
+                    <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                        <i class="fa-solid fa-layer-group me-2 text-danger"></i>ការគ្រប់គ្រងប្រភេទ (Category)
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="p-3 shadow-sm border border-2 rounded bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-muted">បញ្ជីប្រភេទ (List)</span>
+                        <a href="{{ url_for('category.admin_category_add') }}" class="text-decoration-none">
+                            <button class="btn btn-akk-primary shadow-sm">
+                                <i class="fa-solid fa-circle-plus me-2 text-danger"></i>
+                                <span>បង្កើតថ្មី (Add New)</span>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow border-0 flex-grow-1 overflow-hidden mb-3">
+            <div class="card-body p-0 d-flex flex-column h-100">
+
+                <div class="table-scroll-area">
+                    <table class="table table-hover table-bordered mb-0 align-middle">
+                        <thead class="akk-header">
+                        <tr>
+                            <th class="text-center py-3 akk-header" style="width: 80px;">
+                                <i class="fa-solid fa-hashtag me-1 text-danger"></i>ID
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 100px;">
+                                <i class="fa-solid fa-hashtag me-1 text-danger"></i>IMG
+                            </th>
+                            <th class="py-3 akk-header" style="width: 250px;">
+                                <i class="fa-solid fa-tag me-1 text-danger"></i>Name
+                            </th>
+                            <th class="py-3 akk-header">
+                                <i class="fa-solid fa-align-left me-1 text-danger"></i>Description
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 150px;">
+                                <i class="fa-solid fa-circle-info me-1 text-danger"></i>Status
+                            </th>
+                            <th class="text-center py-3 akk-header" style="width: 180px;">
+                                <i class="fa-solid fa-gears me-1 text-danger"></i>Action
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td class="text-center fw-bold text-secondary">
+                                    {{ loop.index }}
+                                </td>
+                                <td class="fw-bold text-dark">
+                                    <img src="{{ url_for("static",filename="images/resized_" + category.image) if category.image else url_for("static",filename="images/none.jpg")   }}" alt=""
+                                    class="img-fluid w-200 h-200">
+                                </td>
+                                <td class="fw-bold text-dark">
+                                    {{ category['name'] }}
+                                </td>
+                                <td class="text-muted small">
+                                    {{ category['desc'] if category.desc.strip() != "" else "Not Yet Set"}}
+                                </td>
+                                <td class="text-center">
+                                    {% if category['status'] == 'false' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>បិទ
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-circle-check me-1"></i>សកម្ម
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('category.admin_category_edit', category_id=category.id) }}">
+                                            <button class="btn btn-outline-dark btn-sm" title="Edit Category">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                        </a>
+                                        <form action="{{ url_for('category.admin_category_delete', category_id=category.id) }}"
+                                              method="post">
+                                            <button class="btn btn-outline-danger btn-sm btn-delete ms-1"
+                                                    title="Delete Category">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-shrink-0 mb-3">
+            <div class="">
+                <div class="text-muted small">
+                    Total Categories: {{ categories|length }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+
+                Swal.fire({
+                    title: "តើអ្នកប្រាកដទេ?",
+                    text: "ទិន្នន័យដែលលុបហើយមិនអាចយកមកវិញបានទេ!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#000000",
+                    cancelButtonColor: "#dc2626",
+                    confirmButtonText: "បាទ/ចាស លុបវា!",
+                    cancelButtonText: "បោះបង់"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    Swal.fire({
+                        title: '{{ "ជោគជ័យ" if category == "success" else "បរាជ័យ" }}',
+                        text: '{{ message }}',
+                        icon: '{{ category }}',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        confirmButtonColor: "#000000"
+                    });
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+
+{% endblock %}

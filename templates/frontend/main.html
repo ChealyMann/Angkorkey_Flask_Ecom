@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" class="dark">
+<!-- ==================== HEAD SECTION ==================== -->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keyz Store - Clean Black Mobile</title>
+    <link rel="icon" type="image/jpg" href="{{url_for("static",filename="logo/sq_logo.jpg" )}}">
+
+    <!-- External Scripts & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+
+    <!-- ========== CUSTOM STYLES ========== -->
+    <style>
+        /* --- Base & Typography --- */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #09090b;
+            color: #e4e4e7;
+            padding-bottom: 80px;
+            /* Space for bottom nav on mobile */
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        /* --- Smooth Transitions --- */
+        .smooth-transition {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* --- Mobile Menu Animation --- */
+        .offcanvas-transition {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.overflow-hidden {
+            overflow: hidden;
+        }
+
+        /* --- Dropdown Animation --- */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-0.5rem) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block !important;
+            animation: fadeInDown 0.2s ease-out forwards;
+        }
+
+        .dropdown-menu::before {
+            content: "";
+            position: absolute;
+            top: -0.75rem;
+            left: 0;
+            right: 0;
+            height: 0.75rem;
+            background-color: transparent;
+        }
+
+        /* --- Line Clamping --- */
+        .clamp-responsive {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-line-clamp: 1;
+        }
+
+        @media (min-width: 640px) {
+            .clamp-responsive {
+                -webkit-line-clamp: 2;
+            }
+        }
+
+        /* --- Scrollbar Hiding --- */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-indigo-500 selection:text-white min-h-screen pb-20">
+    <!-- ==================== HEADER / NAVIGATION BAR ==================== -->
+    {% include("frontend/layouts/header.html") %}
+
+    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+    <div class="max-w-4xl mx-auto">{% block content %} {% endblock %}</div>
+
+    <!-- ==================== FOOTER ==================== -->
+    {% include("frontend/layouts/footer.html") %}
+
+    <!-- ==================== MOBILE MENU (Off-Canvas) ==================== -->
+    {% include("frontend/layouts/mobile_menu.html") %}
+    {% include("frontend/layouts/mobile_categories.html") %}
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // ========== CAROUSEL / SLIDER FUNCTIONALITY ==========
+            const carousel = document.getElementById("carousel");
+            if (carousel) {
+                const prevBtn = document.getElementById("prev-btn");
+                const nextBtn = document.getElementById("next-btn");
+                let currentSlide = 0;
+                const totalSlides = carousel.children.length;
+
+                // Update carousel position
+                function updateSlide() {
+                    const offset = currentSlide * -100;
+                    carousel.style.transform = `translateX(${offset}%)`;
+                }
+
+                // Next slide button
+                if (nextBtn) {
+                    nextBtn.addEventListener("click", () => {
+                        currentSlide = (currentSlide + 1) % totalSlides;
+                        updateSlide();
+                    });
+                }
+
+                // Previous slide button
+                if (prevBtn) {
+                    prevBtn.addEventListener("click", () => {
+                        currentSlide =
+                            (currentSlide - 1 + totalSlides) % totalSlides;
+                        updateSlide();
+                    });
+                }
+
+                // Auto-advance carousel every 6 seconds
+                setInterval(() => {
+                    currentSlide = (currentSlide + 1) % totalSlides;
+                    updateSlide();
+                }, 6000);
+            }
+
+            // ========== MOBILE MENU FUNCTIONALITY ==========
+            const mobileMenu = document.getElementById("mobile-menu");
+            const menuOverlay = document.getElementById("menu-overlay");
+            const menuDrawer = mobileMenu.querySelector(
+                ".offcanvas-transition",
+            );
+            const openMenuBtn =
+                document.getElementById("mobile-menu-button");
+            const closeMenuBtn =
+                document.getElementById("close-menu-button");
+
+            // Toggle mobile menu open/close
+            function toggleMenu(open) {
+                if (open) {
+                    mobileMenu.classList.remove("hidden");
+                    document.body.classList.add("overflow-hidden");
+                    setTimeout(() => {
+                        menuOverlay.style.opacity = "1";
+                        menuDrawer.style.transform = "translateX(0)";
+                    }, 10);
+                } else {
+                    menuOverlay.style.opacity = "0";
+                    menuDrawer.style.transform = "translateX(100%)";
+                    document.body.classList.remove("overflow-hidden");
+                    setTimeout(
+                        () => mobileMenu.classList.add("hidden"),
+                        400,
+                    );
+                }
+            }
+
+            // Event listeners for mobile menu
+            openMenuBtn.addEventListener("click", () => toggleMenu(true));
+            closeMenuBtn.addEventListener("click", () => toggleMenu(false));
+            menuOverlay.addEventListener("click", () => toggleMenu(false));
+
+            // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
+            const mobileCategoryMenu = document.getElementById("mobile-category-menu");
+            if (mobileCategoryMenu) {
+                const categoryOverlay = document.getElementById("category-overlay");
+                const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
+                const openCategoryBtn = document.getElementById("mobile-category-button");
+                const closeCategoryBtn = document.getElementById("close-category-button");
+
+                function toggleCategoryMenu(open) {
+                    if (open) {
+                        mobileCategoryMenu.classList.remove("hidden");
+                        document.body.classList.add("overflow-hidden");
+                        // Close main menu if open
+                        if (!mobileMenu.classList.contains("hidden")) {
+                            toggleMenu(false);
+                        }
+                        
+                        setTimeout(() => {
+                            categoryOverlay.style.opacity = "1";
+                            categoryDrawer.style.transform = "translateX(0)";
+                        }, 10);
+                    } else {
+                        categoryOverlay.style.opacity = "0";
+                        categoryDrawer.style.transform = "translateX(100%)";
+                        document.body.classList.remove("overflow-hidden");
+                        setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
+                    }
+                }
+
+                if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
+                if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
+                if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
+            }
+        });
+    </script>
+</body>
+
+</html>

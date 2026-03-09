@@ -1,0 +1,56 @@
+{% if pagination and pagination.pages > 1 %}
+<nav class="flex justify-center items-center gap-2 mt-8 animate-fade-in" aria-label="Pagination">
+    {# Previous Button #}
+    {% if pagination.has_prev %}
+    <button onclick="changePage('{{ pagination.prev_num }}')"
+        class="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-[#18181b] text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+    {% else %}
+    <button disabled
+        class="flex items-center justify-center w-8 h-8 rounded-full border border-white/5 bg-[#18181b]/50 text-gray-600 cursor-not-allowed">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+    {% endif %}
+
+    {# Page Numbers #}
+    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
+    {% if page_num %}
+    {% if page_num == pagination.page %}
+    <button
+        class="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black font-medium text-sm border border-white shadow-lg shadow-white/10 scale-110">
+        {{ page_num }}
+    </button>
+    {% else %}
+    <button onclick="changePage('{{ page_num }}')"
+        class="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-[#18181b] text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200 text-sm">
+        {{ page_num }}
+    </button>
+    {% endif %}
+    {% else %}
+    <span class="text-gray-600 px-1">...</span>
+    {% endif %}
+    {% endfor %}
+
+    {# Next Button #}
+    {% if pagination.has_next %}
+    <button onclick="changePage('{{ pagination.next_num }}')"
+        class="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-[#18181b] text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+    </button>
+    {% else %}
+    <button disabled
+        class="flex items-center justify-center w-8 h-8 rounded-full border border-white/5 bg-[#18181b]/50 text-gray-600 cursor-not-allowed">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+    </button>
+    {% endif %}
+</nav>
+{% endif %}

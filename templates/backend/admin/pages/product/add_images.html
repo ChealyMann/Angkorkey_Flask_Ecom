@@ -1,0 +1,352 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    /* 2. NO SCROLL LAYOUT */
+    .screen-fit-container {
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .scrollable-card-body {
+        flex-grow: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    /* 3. "LIGHT BLACK" BORDER STYLES */
+    /* Soft Dark Grey Borders for Inputs */
+    .akk-input {
+        border: 1px solid #6c757d;
+        /* Light Black / Dark Grey */
+        background-color: #fff;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .akk-input:focus {
+        box-shadow: none;
+        background-color: #fff !important;
+        border-color: #dc2626 !important;
+        /* Red Border on Focus */
+    }
+
+    /* Card Borders */
+    .border-light-black {
+        border: 2px solid #dee2e6;
+        /* Soft grey for outer containers */
+    }
+
+    /* Upload Area - Dashed Light Black */
+    .upload-area {
+        border: 2px dashed #6c757d;
+        /* Visible but soft dark grey */
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+    }
+
+    .upload-area:hover {
+        border-color: #dc2626 !important;
+        background-color: #fef2f2 !important;
+        cursor: pointer;
+    }
+
+    /* Image Containers (Gallery) */
+    .image-container {
+        border: 1px solid #6c757d;
+        /* Consistent light black border */
+    }
+
+    /* Scrollbar Styling */
+    .image-strip {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        white-space: nowrap;
+        scrollbar-width: thin;
+    }
+
+    .image-strip::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .image-strip::-webkit-scrollbar-thumb {
+        background: #6c757d;
+        border-radius: 4px;
+    }
+
+    .image-strip::-webkit-scrollbar-track {
+        background: #eee;
+    }
+
+    /* Red Top Accent */
+    .border-red-accent {
+        border-top: 4px solid #dc2626;
+    }
+</style>
+
+<div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+
+    <div class="flex-shrink-0 mb-3">
+        <div class="row mb-3">
+            <div class="col">
+                <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                    <i class="fa-solid fa-images me-2 text-danger"></i>បន្ថែមរូបភាព (Add Images): <span
+                        class="text-muted fs-4">{{ product.name }}</span>
+                </h2>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="p-3 shadow-sm rounded bg-white border-light-black">
+                    <a href="{{ url_for('product.product_variants',product_id = product_id) }}" class="text-decoration-none">
+                        <button class="btn btn-outline-dark">
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+                            <span>ត្រឡប់ក្រោយ (Back)</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="{{ url_for('product.product_add_image', product_id=product_id , variant_id = variant_id) }}" method="post"
+        enctype="multipart/form-data" class="d-flex flex-column flex-grow-1 overflow-hidden">
+        {{ form.hidden_tag() }}
+
+        <div class="card shadow-sm flex-grow-1 overflow-hidden border-light-black">
+            <div class="card-body p-4 scrollable-card-body">
+
+                <div class="mb-4">
+                    <h6 class="fw-bold text-black pb-2">
+                        <i class="fa-solid fa-cloud-arrow-up me-2 text-danger"></i>រូបភាពថ្មី (New Uploads)
+                    </h6>
+
+                    {{ form.images(class="d-none", id="image_upload", accept=".jpg, .png, .webp, .jpeg") }}
+
+                    <label for="image_upload" class="upload-area w-100 p-4 text-center rounded-3 mb-3">
+                        <div class="mb-1">
+                            <i class="bi bi-cloud-arrow-up-fill text-danger fs-1"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0 text-dark">ចុចដើម្បីជ្រើសរើសរូបភាព (Click to Upload)</h6>
+                        <p class="text-muted small mb-0">JPG, PNG or WEBP</p>
+                    </label>
+
+                    <div id="new-images-container" class="image-strip">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h6 class="fw-bold text-black pb-2">
+                        <i class="fa-solid fa-photo-film me-2 text-danger"></i>រូបភាពដែលមានស្រាប់ (Gallery)
+                    </h6>
+
+
+                    {% if product %}
+                    <div class="image-strip" id="existing-images-container">
+{#                    {% set variant_images = product %}#}
+                        {% for img in product %}
+                        <div
+                            class="position-relative d-inline-block flex-shrink-0 p-1 rounded bg-white image-container">
+                            <img src="{{ url_for('static',filename='images/'+img.image) }}" alt="Product Image"
+                                class="d-block rounded" style="height: 180px; width: auto; object-fit: cover;">
+
+                            <button type="button"
+                                class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle shadow d-flex align-items-center justify-content-center delete-image-btn"
+                                style="width: 28px; height: 28px; padding: 0; z-index: 10;" title="Delete Image"
+                                data-delete-url="{{ url_for('product.product_image_delete', image_id=img.id) }}">
+                                <i class="fas fa-times small"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="p-3 border rounded bg-light text-center">
+                        <p class="text-muted small fst-italic mb-0">No existing images found.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <div class="flex-shrink-0 mt-3 mb-4">
+            <div class="p-3 shadow-sm rounded bg-white border-light-black">
+                {{ form.submit(class="btn btn-dark px-4 py-2 fw-bold", id='btn_add', value="រក្សាទុក (Save Images)") }}
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script defer>
+    const image_upload = document.getElementById('image_upload');
+    const container = document.getElementById('new-images-container');
+    let dt = new DataTransfer();
+    let globalIndex = 0;
+
+    image_upload.addEventListener('change', function (e) {
+        let files = e.target.files
+        if (files) {
+            for (let index = 0; index < files.length; index++) {
+                const file = files[index]
+                dt.items.add(file)
+
+                // --- UI CREATION ---
+                const my_div = document.createElement('div')
+                // Using styles to match the "Light Black" border theme
+                my_div.setAttribute("class", "position-relative flex-shrink-0 bg-white rounded p-1")
+                my_div.style.border = "1px solid #6c757d"; // Light Black Border
+                my_div.style.transition = 'all 0.3s ease';
+
+                const img = document.createElement('img')
+                img.setAttribute("class", "d-block rounded")
+                img.setAttribute("id", `preview_img_${globalIndex}`)
+                img.setAttribute("title", "Double click to remove")
+                globalIndex++;
+
+                img.style.width = "auto"
+                img.style.height = "180px"
+                img.style.cursor = "pointer"
+
+                // Initial Border Inside
+                img.style.border = "1px dashed #adb5bd"
+                img.draggable = false
+
+                // Remove Logic
+                img.addEventListener('dblclick', function (e) {
+                    my_div.remove()
+                    for (let loop = 0; loop < dt.files.length; loop++) {
+                        if (file === dt.items[loop].getAsFile()) {
+                            dt.items.remove(loop)
+                            break;
+                        }
+                    }
+                    image_upload.files = dt.files
+                })
+
+                // Hover Effects
+                img.style.transition = 'border-color 0.2s ease';
+                img.addEventListener('mouseout', () => (img.style.border = '1px dashed #adb5bd'))
+                img.addEventListener('mouseover', () => (img.style.border = '2px solid #dc2626')) // Red
+
+                my_div.append(img)
+
+                // Add "X" badge
+                const badge = document.createElement('span');
+                badge.innerHTML = '<i class="fas fa-times"></i>';
+                badge.setAttribute('class', 'position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm');
+                badge.style.width = '24px';
+                badge.style.height = '24px';
+                badge.style.fontSize = '12px';
+                badge.style.margin = '4px';
+                badge.style.cursor = 'pointer'; // Make it clickable
+
+                // Click event to remove
+                badge.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Prevent bubbling
+                    my_div.remove();
+                    for (let loop = 0; loop < dt.files.length; loop++) {
+                        if (file === dt.items[loop].getAsFile()) {
+                            dt.items.remove(loop);
+                            break;
+                        }
+                    }
+                    image_upload.files = dt.files;
+                });
+
+                my_div.append(badge);
+
+                const reader = new FileReader()
+
+                reader.addEventListener('load', function (e) {
+                    img.setAttribute('src', `${reader.result}`)
+                    container.append(my_div)
+                })
+
+                reader.readAsDataURL(file)
+            }
+        }
+        image_upload.files = dt.files
+    })
+</script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flash-messages-data" data-messages="{{ messages | tojson | forceescape }}" style="display: none;"></div>
+<script>
+        (function () {
+            const dataDiv = document.getElementById('flash-messages-data');
+            if (dataDiv) {
+                try {
+                    const messages = JSON.parse(dataDiv.getAttribute('data-messages'));
+                    messages.forEach(([category, message]) => {
+                        let title = "Error";
+                        if (category === "success") title = "ជោគជ័យ";
+                        else if (category === "error" || category === "danger") title = "បរាជ័យ";
+
+                        Swal.fire({
+                            title: title,
+                            text: message,
+                            icon: category === "danger" ? "error" : category,
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true,
+                            confirmButtonColor: "#000000"
+                        });
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        })();
+</script>
+{% endif %}
+{% endwith %}
+
+<script>
+    // Delete Confirmation for Existing Images
+    // Delete Confirmation for Existing Images
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteButtons = document.querySelectorAll('.delete-image-btn');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const deleteUrl = this.getAttribute('data-delete-url');
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#000000",
+                    cancelButtonColor: "#dc2626",
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "Cancel"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Create a temporary form to submit the POST request
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = deleteUrl;
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

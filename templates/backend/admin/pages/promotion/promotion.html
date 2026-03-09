@@ -1,0 +1,145 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        .screen-fit-container {
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .table-scroll-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            border-bottom: 2px solid #000;
+        }
+
+        .table-scroll-area thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid black !important;
+        }
+
+        .akk-header {
+            background-color: #000000 !important;
+            color: white !important;
+            border-bottom: 2px solid #dc2626 !important;
+        }
+
+        .btn-akk-primary {
+            background-color: #000000;
+            color: white;
+            border: 1px solid black;
+        }
+
+        .btn-akk-primary:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #fef2f2 !important;
+        }
+    </style>
+
+    <div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+
+        <div class="flex-shrink-0">
+            <div class="row mb-3">
+                <div class="col">
+                    <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                        <i class="fa-solid fa-rectangle-ad me-2 text-danger"></i>ការគ្រប់គ្រងប្រូម៉ូសិន (Promotion)
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="p-3 shadow-sm border border-2 rounded bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-muted">បញ្ជីប្រូម៉ូសិន (List)</span>
+                        <a href="{{ url_for('promotion.promotion_add') }}" class="text-decoration-none">
+                            <button class="btn btn-akk-primary shadow-sm">
+                                <i class="fa-solid fa-circle-plus me-2 text-danger"></i>
+                                <span>បង្កើតថ្មី (Add New)</span>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow border-0 flex-grow-1 overflow-hidden mb-3">
+            <div class="card-body p-0 d-flex flex-column h-100">
+
+                <div class="table-scroll-area">
+                    <table class="table table-hover table-bordered mb-0 align-middle">
+                        <thead class="akk-header">
+                        <tr>
+                            <th class="text-center py-3 akk-header" style="width: 80px;">ID</th>
+                            <th class="text-center py-3 akk-header" style="width: 150px;">IMG</th>
+                            <th class="py-3 akk-header">Title</th>
+                            <th class="py-3 akk-header">Subtitle</th>
+                            <th class="text-center py-3 akk-header" style="width: 100px;">Active</th>
+                            <th class="text-center py-3 akk-header" style="width: 150px;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for promotion in promotions %}
+                            <tr>
+                                <td class="text-center fw-bold text-secondary">{{ loop.index }}</td>
+                                <td class="fw-bold text-dark text-center">
+                                    <img src="{{ url_for('static', filename='images/' + promotion.image) }}" alt="" class="img-fluid rounded" style="max-height: 80px;">
+                                </td>
+                                <td class="fw-bold text-dark">{{ promotion.title }}</td>
+                                <td class="text-muted small">{{ promotion.subtitle }}</td>
+                                <td class="text-center">
+                                    {% if promotion.is_active %}
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-check me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                            <i class="fa-solid fa-xmark me-1"></i>Inactive
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('promotion.promotion_edit', promotion_id=promotion.id) }}">
+                                            <button class="btn btn-outline-dark btn-sm" title="Edit">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                        </a>
+                                        <form action="{{ url_for('promotion.promotion_delete', promotion_id=promotion.id) }}" method="get">
+                                            <button class="btn btn-outline-danger btn-sm btn-delete ms-1" title="Delete">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">No promotions found.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

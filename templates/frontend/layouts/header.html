@@ -1,0 +1,77 @@
+<header class="sticky top-0 z-40 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 md:h-20">
+
+            <!-- --- Logo --- -->
+            <div class="flex-shrink-0">
+                <a href="{{ url_for("home.home") }}" class="flex items-center gap-2 group">
+                    <span class="text-xl md:text-2xl font-bold text-white tracking-tighter">ANGKOR<span
+                            class="text-gray-500 group-hover:text-white transition duration-300">KEY</span></span>
+                </a>
+            </div>
+
+            <!-- --- Desktop Navigation Menu --- -->
+            <nav class="hidden md:flex flex-1 justify-center">
+                <ul class="flex items-center space-x-1 text-sm font-medium">
+                    <li>
+                        <a href="{{ url_for("home.products") }}"
+                            class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.products' and not request.view_args.get('category_id') else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Products</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for("home.promotions") }}"
+                            class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.promotions' else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Promotions</a>
+                    </li>
+                    
+                    <!-- Categories Dropdown (Text Only) -->
+                    <li class="relative dropdown group">
+                        <a href="{{url_for('home.all_categories')}}"
+                            class="flex items-center gap-1 px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.view_args.get('category_id') else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">
+                            Categories
+                            <svg class="h-4 w-4 bg-transparent group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7 7" />
+                            </svg>
+                        </a>
+                        <!-- Text-Only Dropdown -->
+                        <ul
+                            class="dropdown-menu absolute hidden bg-[#18181b] shadow-2xl rounded-xl w-56 p-2 z-50 origin-top top-full mt-2 border border-white/10">
+                            {% for category in categories %}
+                            <li>
+                                <a href="{{ url_for('home.products', category_id=category.id) }}"
+                                    class="block px-4 py-3 text-sm text-gray-400 hover:bg-white/5 hover:text-white rounded-lg transition">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- --- Header Action Buttons (Search, Cart, Mobile Menu) --- -->
+            <div class="flex items-center gap-3">
+
+                <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
+                {# <button
+                    class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="absolute top-1 right-1 h-2 w-2 bg-white rounded-full"></span>
+                </button> #}
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button"
+                        class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

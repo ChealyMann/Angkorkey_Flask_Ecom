@@ -1,0 +1,217 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        /* Custom AKK Input Styles */
+        .akk-input {
+            border: 2px solid #e5e7eb; /* Gray-200 */
+            background-color: #f9fafb; /* Gray-50 */
+        }
+
+        .akk-input:focus {
+            box-shadow: none;
+            background-color: #fff !important;
+            border-color: #dc2626 !important; /* Red Border on Focus */
+            ring: 0;
+        }
+
+        .border-red-accent {
+            border-top: 4px solid #dc2626;
+        }
+    </style>
+
+    <div class="font-khmer w-auto mx-5 mt-4">
+
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                    <i class="fa-solid fa-layer-group me-2 text-danger"></i>កែប្រែប្រភេទ (Edit Category)
+                </h2>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border rounded bg-white">
+                    <a href="{{ url_for('category.admin_category') }}" class="text-decoration-none">
+                        <button class="btn btn-outline-dark">
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+                            <span>ត្រឡប់ក្រោយ</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <form action="{{ url_for('category.admin_category_edit', category_id=category.id) }}" method="post"
+              enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+
+            <div class="card shadow-sm border-0 border-red-accent p-4">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="form-floating mb-4">
+                            {{ form.name(class="form-control akk-input rounded", id="floatingInput", placeholder="Category Name") }}
+                            <label for="floatingInput" class="text-muted">ឈ្មោះប្រភេទ (Category Name)</label>
+                            {% for error in form.name.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-floating">
+                            {{ form.status(class="form-select akk-input rounded", id="floatingSelect") }}
+                            <label for="floatingSelect" class="text-muted">ស្ថានភាព (Status)</label>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="form-floating h-100">
+                            {{ form.desc(class="form-control akk-input rounded h-100", placeholder="Description", id="floatingTextarea", style="min-height: 120px;") }}
+                            <label for="floatingTextarea" class="text-muted">ការពិពណ៌នា (Description)</label>
+                        </div>
+                    </div>
+
+                    <!-- --- Image Upload Section --- -->
+                    <div class="mb-4">
+                        <label class="text-muted small mb-2 d-block">រូបភាព (Image)</label>
+
+                        <!-- Hidden File Input -->
+                        {{ form.image(class="d-none", id="image_upload", onchange="previewImage(event)", accept=".jpg, .png, .webp, .jpeg") }}
+
+                        <!-- Image Preview Container -->
+                        <div id="preview-container" class="text-center mb-3 {{ '' if category.image else 'd-none' }}">
+                            <div class="d-inline-block position-relative border rounded p-1 bg-white shadow-sm">
+                                <!-- Image Preview -->
+                                <img id="image-preview"
+                                     data-original-src="{{ url_for('static', filename='images/' + category.image) if category.image else '' }}"
+                                     src="{{ url_for('static', filename='images/resized_' + category.image) if category.image and os.path.exists('static/images/resized_' + category.image) and category.image else (url_for('static', filename='images/' + "none.jpg") if category.image else url_for('static', filename='images/none.jpg')) }}"
+                                     alt="Preview"
+                                     class="rounded"
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+
+                                <!-- Delete Image Button -->
+                                <button type="button" id="btn-delete-image" onclick="removeImage()"
+                                        class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle shadow d-none"
+                                        style="width:28px; height:28px; padding: 0;">
+                                    <i class="fas fa-times small"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Upload Area (Click to Upload) -->
+                        <label for="image_upload" class="upload-area w-100 p-3 text-center rounded text-muted fw-bold">
+                            <i class="bi bi-cloud-upload-fill text-danger me-2"></i> ចុចដើម្បីប្តូររូបភាព
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row mt-4 mb-5">
+                <div class="col-12">
+                    <div class="p-3 shadow-sm border rounded bg-white d-flex gap-2">
+
+                        <button type="submit" class="btn btn-dark px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-save me-2 text-danger"></i>
+                            រក្សាទុកការកែប្រែ (Update)
+                        </button>
+
+                        <button class="btn btn-outline-danger px-4 py-2 fw-bold" id="btnClear" type="button">
+                            <i class="fa-solid fa-eraser me-2"></i>
+                            <span>សម្អាត (Clear)</span>
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+
+        // ========== IMAGE PREVIEW FUNCTION ==========
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+            var previewContainer = document.getElementById("preview-container");
+            var imageField = document.getElementById("image-preview");
+            var deleteBtn = document.getElementById("btn-delete-image");
+
+            // --- On File Load Complete ---
+            reader.onload = function () {
+                if (reader.readyState == 2) {
+                    imageField.src = reader.result;
+                    previewContainer.classList.remove("d-none");
+                    deleteBtn.classList.remove("d-none");
+                }
+            }
+
+            // --- Read the Selected File ---
+            if (input.files && input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ========== REMOVE IMAGE FUNCTION ==========
+        function removeImage() {
+            var input = document.getElementById("image_upload");
+            var previewContainer = document.getElementById("preview-container");
+            var imageField = document.getElementById("image-preview");
+            var deleteBtn = document.getElementById("btn-delete-image");
+
+            // --- Clear File Input ---
+            input.value = "";
+
+            // --- Get Original Image Source ---
+            var originalSrc = imageField.getAttribute('data-original-src');
+
+            // --- Restore Original Image or Hide Preview ---
+            if (originalSrc && originalSrc !== "") {
+                // If editing existing product, restore original image
+                imageField.src = originalSrc;
+                deleteBtn.classList.add("d-none");
+            } else {
+                // If new product, hide preview completely
+                imageField.src = "#";
+                previewContainer.classList.add("d-none");
+                deleteBtn.classList.add("d-none");
+            }
+        }
+
+
+        function clearFormFields() {
+            // Get the elements by their IDs
+            const categoryInput = document.getElementById('floatingInput'); // Category Name
+            const statusSelect = document.getElementById('floatingSelect'); // Status dropdown
+            const descriptionTextarea = document.getElementById('floatingTextarea'); // Description
+
+            // Clear the value of the text input and textarea
+            if (categoryInput) {
+                categoryInput.value = '';
+            }
+
+            if (descriptionTextarea) {
+                descriptionTextarea.value = '';
+            }
+
+            // Reset status to default (assuming index 0 is 'Active' or default)
+            if (statusSelect) {
+                statusSelect.selectedIndex = 0;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const clearButton = document.getElementById('btnClear');
+            if (clearButton) {
+                clearButton.addEventListener('click', clearFormFields);
+            }
+        });
+    </script>
+{% endblock %}

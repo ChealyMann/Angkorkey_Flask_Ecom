@@ -1,0 +1,89 @@
+<div id="mobile-menu" class="fixed inset-0 z-[100] hidden">
+    <!-- Dark, Blurred Overlay -->
+    <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-500">
+    </div>
+
+    <!-- Menu Drawer -->
+    <div
+        class="fixed right-0 top-0 h-full w-[85%] max-w-sm bg-[#09090b]/90 backdrop-blur-2xl shadow-2xl transform translate-x-full offcanvas-transition flex flex-col border-l border-white/10">
+
+        <!-- Decoration: Background Gradient Glow -->
+        <div
+            class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none -ml-32 -mb-32">
+        </div>
+
+        <!-- Menu Header -->
+        <div class="flex justify-between items-center p-8 border-b border-white/5 relative z-10">
+            <div>
+                <span class="text-2xl font-bold text-white tracking-tighter">ANGKOR<span
+                        class="text-gray-500">KEY</span></span>
+                <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mt-1">Premium Gear</p>
+            </div>
+            <button id="close-menu-button"
+                class="group p-2 rounded-full border border-white/10 hover:bg-white text-white hover:text-black transition-all duration-300">
+                <svg class="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Menu Items -->
+        <div class="p-8 overflow-y-auto flex-1 relative z-10 no-scrollbar">
+            <nav class="space-y-8">
+                <!-- Main Links -->
+                <ul class="space-y-6">
+                    <li>
+                        <a href="{{ url_for('home.home') }}"
+                            class="group flex items-center gap-4 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 hover:to-white transition-all">
+                            <span
+                                class="w-1 h-1 bg-white rounded-full {{ 'opacity-100' if request.endpoint == 'home.home' else 'opacity-0' }} group-hover:opacity-100 transition-opacity duration-300"></span>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('home.products') }}"
+                            class="group flex items-center gap-4 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 hover:to-white transition-all">
+                            <span
+                                class="w-1 h-1 bg-white rounded-full {{ 'opacity-100' if request.endpoint == 'home.products' else 'opacity-0' }} group-hover:opacity-100 transition-opacity duration-300"></span>
+                            Products
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('home.promotions') }}"
+                            class="group flex items-center gap-4 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 hover:to-white transition-all">
+                            <span
+                                class="w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                            Promotions
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Categories -->
+                <div class="pt-8 border-t border-white/5">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Explore Categories</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        {% for category in categories %}
+                        <a href="{{ url_for('home.products', category_id=category.id) }}"
+                            class="flex items-center justify-between p-4 rounded-2xl {{ 'bg-white/10 border-white/20' if request.view_args.get('category_id')|string == category.id|string else 'bg-white/5 border-white/5' }} hover:bg-white/10 hover:border-white/20 transition-all group">
+                            <span
+                                class="text-sm font-medium {{ 'text-white' if request.view_args.get('category_id')|string == category.id|string else 'text-gray-300' }} group-hover:text-white transition-colors">{{
+                                category.name }}</span>
+                            <svg class="w-4 h-4 {{ 'text-white translate-x-1' if request.view_args.get('category_id')|string == category.id|string else 'text-gray-600' }} group-hover:text-white transition-colors transform group-hover:translate-x-1"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+
+    </div>
+</div>

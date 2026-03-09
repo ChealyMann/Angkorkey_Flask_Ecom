@@ -1,0 +1,387 @@
+<!-- ==================== TEMPLATE INHERITANCE ==================== -->
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+
+    <!-- ==================== EXTERNAL FONTS ==================== -->
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ==================== CUSTOM STYLES ==================== -->
+    <style>
+        /* --- Khmer Font --- */
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        /* --- Custom AKK Input Styles (Matched to design) --- */
+        .akk-input {
+            border: 2px solid #e5e7eb; /* Gray-200 */
+            background-color: #f9fafb; /* Gray-50 */
+        }
+        .akk-input:focus {
+            box-shadow: none;
+            background-color: #fff !important;
+            border-color: #dc2626 !important; /* Red Border on Focus */
+            ring: 0;
+        }
+
+        /* --- Red Accent Border for Card --- */
+        .border-red-accent {
+            border-top: 4px solid #dc2626;
+        }
+
+        /* --- Image Upload Area Styles --- */
+        .upload-area {
+            border: 2px dashed #e5e7eb;
+            background-color: #f9fafb;
+            transition: all 0.2s ease;
+        }
+        .upload-area:hover {
+            border-color: #dc2626;
+            background-color: #fef2f2; /* Light Red */
+            cursor: pointer;
+        }
+
+        /* --- Summernote Fixes --- */
+
+        /* 1. Fix Bullet Points & Numbered Lists */
+        /* Override global resets that hide list styles */
+        .note-editable ul {
+            list-style: disc !important;
+            list-style-position: inside !important;
+            padding-left: 20px !important;
+        }
+
+        .note-editable ol {
+            list-style: decimal !important;
+            list-style-position: inside !important;
+            padding-left: 20px !important;
+        }
+
+        /* 2. Fix Fullscreen Mode ("Big Screen") */
+        /* Ensure fullscreen editor sits above all other elements (navbar, sidebar) */
+        .note-editor.note-frame.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important; /* Force on top of everything */
+            background-color: #fff !important; /* Ensure background is opaque */
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        /* Fix for internal resizing in fullscreen */
+        .note-editor.note-frame.fullscreen .note-editable {
+            height: 100% !important; 
+            background-color: #fff !important;
+        }
+
+        /* 3. Fix Bold Text */
+        /* Override global resets that might unset font-weight */
+        .note-editable b, 
+        .note-editable strong {
+            font-weight: bold !important;
+        }
+    </style>
+
+    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+    <div class="font-khmer w-auto mx-5 mt-4">
+
+        <!-- ==================== PAGE HEADER ==================== -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                    <i class="fa-solid fa-pen-to-square me-2 text-danger"></i>កែប្រែផលិតផល (Edit Product)
+                </h2>
+            </div>
+        </div>
+
+        <!-- ==================== BACK BUTTON SECTION ==================== -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border rounded bg-white">
+                    <a href="{{ url_for('product.product') }}" class="text-decoration-none">
+                        <button class="btn btn-outline-dark">
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+                            <span>ត្រឡប់ក្រោយ</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== EDIT PRODUCT FORM ==================== -->
+        <form action="{{ url_for('product.product_edit', product_id=product.id) }}" method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+
+            <!-- --- Main Form Card --- -->
+            <div class="card shadow-sm border-0 border-red-accent p-4">
+                <div class="row g-4">
+
+                    <!-- ========== LEFT COLUMN: Product Info & Image ========== -->
+                    <div class="col-lg-6">
+
+                        <!-- --- Product Name Field --- -->
+                        <div class="form-floating mb-4">
+                            {{ form.name(class="form-control akk-input rounded", id="floatingInputName", placeholder="Product Name") }}
+                            <label for="floatingInputName" class="text-muted">ឈ្មោះផលិតផល (Name)</label>
+                            {% if form.name.errors %}
+                                <span class="text-danger small">{{ form.name.errors[0] }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- --- Category Dropdown --- -->
+                        <div class="form-floating mb-4">
+                            {{ form.category(class="form-select akk-input rounded", id="floatingSelectCat") }}
+                            <label for="floatingSelectCat" class="text-muted">ប្រភេទ (Category)</label>
+                        </div>
+
+                        <!-- --- Status Dropdown --- -->
+                        <div class="form-floating mb-4">
+                            {{ form.status(class="form-select akk-input rounded", id="floatingSelectStatus") }}
+                            <label for="floatingSelectStatus" class="text-muted">ស្ថានភាព (Status)</label>
+                        </div>
+
+                        <!-- --- Image Upload Section --- -->
+                        <div class="mb-4">
+                            <label class="text-muted small mb-2 d-block">រូបភាព (Image)</label>
+
+                            <!-- Hidden File Input -->
+                            {{ form.image(class="d-none", id="image_upload", onchange="previewImage(event)", accept=".jpg, .png, .webp, .jpeg") }}
+
+                            <!-- Image Preview Container -->
+                            <div id="preview-container" class="text-center mb-3 {{ '' if product.image else 'd-none' }}">
+                                <div class="d-inline-block position-relative border rounded p-1 bg-white shadow-sm">
+                                    <!-- Image Preview -->
+                                    <img id="image-preview"
+                                         data-original-src="{{ url_for('static', filename='images/' + product.image) if product.image else '' }}"
+                                         src="{{ url_for('static', filename='images/resized_' + product.image) if product.image and os.path.exists('static/images/resized_' + product.image) else (url_for('static', filename='images/' + product.image) if product.image else url_for('static', filename='images/none.jpg')) }}"
+                                         alt="Preview"
+                                         class="rounded"
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+
+                                    <!-- Delete Image Button -->
+                                    <button type="button" id="btn-delete-image" onclick="removeImage()"
+                                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle shadow d-none"
+                                            style="width:28px; height:28px; padding: 0;">
+                                        <i class="fas fa-times small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Upload Area (Click to Upload) -->
+                            <label for="image_upload" class="upload-area w-100 p-3 text-center rounded text-muted fw-bold">
+                                <i class="bi bi-cloud-upload-fill text-danger me-2"></i> ចុចដើម្បីប្តូររូបភាព
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ========== RIGHT COLUMN: Price & Description ========== -->
+                    <div class="col-lg-6">
+
+                        <!-- --- Price and Cost Fields (Two Columns) --- -->
+                        <div class="row g-2 mb-4">
+                            <div class="col-4">
+                                <div class="form-floating">
+                                    {{ form.price(class="form-control akk-input rounded", id="floatingInputPrice", placeholder="0") }}
+                                    <label for="floatingInputPrice" class="text-muted">តម្លៃលក់ ($ Price)</label>
+                                    {% if form.price.errors %}
+                                        <span class="text-danger small">{{ form.price.errors[0] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-floating">
+                                    {{ form.old_price(class="form-control akk-input rounded", id="floatingInputOldPrice", placeholder="0") }}
+                                    <label for="floatingInputOldPrice" class="text-muted">តម្លៃដើម ($ Old)</label>
+                                    {% if form.old_price.errors %}
+                                        <span class="text-danger small">{{ form.old_price.errors[0] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-floating">
+                                    {{ form.cost(class="form-control akk-input rounded", id="floatingInputCost", placeholder="0") }}
+                                    <label for="floatingInputCost" class="text-muted">តម្លៃទុន ($ Cost)</label>
+                                    {% if form.cost.errors %}
+                                        <span class="text-danger small">{{ form.cost.errors[0] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- --- Description Textarea (Summernote) --- -->
+                        <div class="mb-4">
+                            <label class="text-muted small mb-2 d-block">ការពិពណ៌នា (Description)</label>
+                            {{ form.desc(id="floatingTextareaDesc") }}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== FORM ACTION BUTTONS ==================== -->
+            <div class="row mt-4 mb-5">
+                <div class="col-12">
+                    <div class="p-3 shadow-sm border rounded bg-white d-flex gap-2">
+
+                        <!-- Save Button -->
+                        <button type="submit" id="btn_add" class="btn btn-dark px-4 py-2 fw-bold">
+                            រក្សាទុក (Save)
+                        </button>
+
+                        <!-- Clear Button -->
+                        <button class="btn btn-outline-danger px-4 py-2 fw-bold" id="btnClear" type="button">
+                            <i class="fa-solid fa-eraser me-2"></i>
+                            <span>សម្អាត (Clear)</span>
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ==================== SUMMERNOTE CSS ==================== -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <!-- Marked.js for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        // ========== INITIALIZE SUMMERNOTE ==========
+        // Custom Markdown Paste Button
+        var MarkdownButton = function (context) {
+            var ui = $.summernote.ui;
+            var button = ui.button({
+                contents: '<i class="fa fa-clipboard"></i> Paste MD',
+                tooltip: 'Paste Markdown from Clipboard',
+                click: function () {
+                    // Read from clipboard
+                    navigator.clipboard.readText().then(function(text) {
+                        try {
+                            const html = marked.parse(text);
+                            context.invoke('editor.pasteHTML', html);
+                        } catch (e) {
+                            console.error("Markdown parse error:", e);
+                            alert("Failed to parse Markdown.");
+                        }
+                    }).catch(function(err) {
+                        console.error('Failed to read clipboard contents: ', err);
+                        alert("Permission to read clipboard denied or failed.");
+                    });
+                }
+            });
+            return button.render(); 
+        }
+
+        $('#floatingTextareaDesc').summernote({
+            placeholder: 'Description',
+            tabsize: 2,
+            height: 200,
+            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Merriweather', 'Georgia', 'Impact', 'Lucida Sans Unicode', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Kantumruy Pro'],
+            fontNamesIgnoreCheck: ['Merriweather', 'Kantumruy Pro'],
+            toolbar: [
+              ['style', ['style']],
+              ['font', ['bold', 'underline', 'clear', 'fontname']],
+              ['color', ['color']],
+              ['para', ['ul', 'ol', 'paragraph']],
+              ['table', ['table']],
+              ['insert', ['link', 'picture', 'video']],
+              ['view', ['fullscreen', 'codeview', 'help']],
+              ['custom', ['markdown']]
+            ],
+            buttons: {
+                markdown: MarkdownButton
+            }
+        });
+
+        // ========== CLEAR FORM FIELDS FUNCTION ==========
+        function clearFormFields() {
+            // --- Get Text Input Elements ---
+            const nameInput = document.getElementById('floatingInputName');
+            const priceInput = document.getElementById('floatingInputPrice');
+            const costInput = document.getElementById('floatingInputCost');
+            // Summernote uses a hidden textarea, we need to clear the editor
+            $('#floatingTextareaDesc').summernote('reset');
+
+            // --- Get Select Elements ---
+            const categorySelect = document.getElementById('floatingSelectCat');
+            const statusSelect = document.getElementById('floatingSelectStatus');
+
+            // --- Clear Text Inputs ---
+            if (nameInput) nameInput.value = '';
+            if (priceInput) priceInput.value = '';
+            if (costInput) costInput.value = '';
+
+            // --- Reset Selects to First Option ---
+            if (categorySelect) categorySelect.selectedIndex = 0;
+            if (statusSelect) statusSelect.selectedIndex = 0;
+
+            // --- Remove Image ---
+            removeImage();
+        }
+
+        // ========== INITIALIZE CLEAR BUTTON EVENT LISTENER ==========
+        document.addEventListener('DOMContentLoaded', function () {
+            const clearButton = document.getElementById('btnClear');
+            if (clearButton) {
+                clearButton.addEventListener('click', clearFormFields);
+            }
+        });
+
+        // ========== IMAGE PREVIEW FUNCTION ==========
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+            var previewContainer = document.getElementById("preview-container");
+            var imageField = document.getElementById("image-preview");
+            var deleteBtn = document.getElementById("btn-delete-image");
+
+            // --- On File Load Complete ---
+            reader.onload = function () {
+                if (reader.readyState == 2) {
+                    imageField.src = reader.result;
+                    previewContainer.classList.remove("d-none");
+                    deleteBtn.classList.remove("d-none");
+                }
+            }
+
+            // --- Read the Selected File ---
+            if (input.files && input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ========== REMOVE IMAGE FUNCTION ==========
+        function removeImage() {
+            var input = document.getElementById("image_upload");
+            var previewContainer = document.getElementById("preview-container");
+            var imageField = document.getElementById("image-preview");
+            var deleteBtn = document.getElementById("btn-delete-image");
+
+            // --- Clear File Input ---
+            input.value = "";
+
+            // --- Get Original Image Source ---
+            var originalSrc = imageField.getAttribute('data-original-src');
+
+            // --- Restore Original Image or Hide Preview ---
+            if (originalSrc && originalSrc !== "") {
+                // If editing existing product, restore original image
+                imageField.src = originalSrc;
+                deleteBtn.classList.add("d-none");
+            } else {
+                // If new product, hide preview completely
+                imageField.src = "#";
+                previewContainer.classList.add("d-none");
+                deleteBtn.classList.add("d-none");
+            }
+        }
+    </script>
+{% endblock %}
