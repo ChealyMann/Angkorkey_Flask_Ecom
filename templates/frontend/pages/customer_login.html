@@ -1,0 +1,44 @@
+{% extends("frontend/main.html") %}
+
+{% block content %}
+
+<main class="h-screen flex items-center justify-center px-4 overflow-hidden">
+
+    <div class="w-full max-w-md bg-[#121214] border border-white/5 rounded-2xl p-6">
+
+        <h2 class="text-2xl font-bold text-white mb-2 text-center">Welcome Back</h2>
+        <p class="text-sm text-gray-500 mb-6 text-center">Login to your account</p>
+
+        <form method="POST" class="space-y-4">
+
+            <div>
+                <label class="text-xs text-gray-400">Email</label>
+                <input type="email" name="email" required
+                       class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-400">Password</label>
+                <input type="password" name="password" required
+                       class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-white text-black font-semibold py-2 rounded-lg hover:opacity-90 transition">
+                Login
+            </button>
+
+        </form>
+
+        <p class="text-xs text-gray-500 mt-6 text-center">
+            Don’t have an account?
+            <a href="{{ url_for('home.customer_register') }}" class="text-white hover:underline">
+                Register
+            </a>
+        </p>
+
+    </div>
+
+</main>
+
+{% endblock %}

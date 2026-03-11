@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, request
-from models import Category, Product, Promotion
+from flask import Blueprint, render_template, request, flash, url_for, session
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from models import Category, Product, Promotion,Customer
 from extensions import db
 from models.Product import getProductDetail
 
@@ -133,3 +135,133 @@ def promotions():
         })
     
     return render_template("frontend/pages/promotion_products.html", products=products)
+
+@home_bp.route('/customer/profile', methods=['GET', 'POST'])
+def customer_profile():
+    from flask import redirect
+    customer_id = session.get('customer_id')
+
+    if not customer_id:
+        flash("Please log in to access your profile.", "error")
+        return redirect(url_for('home.customer_login'))
+
+    customer = Customer.query.get_or_404(customer_id)
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        address = request.form.get('address')
+
+        if not name or not email:
+            flash("Name and Email are required.", "error")
+            return redirect(url_for('home.customer_profile'))
+
+        # check email exists for another user
+        existing_customer = Customer.query.filter(
+            Customer.email == email,
+            Customer.id != customer_id
+        ).first()
+
+        if existing_customer:
+            flash("This email is already in use by another account.", "error")
+            return redirect(url_for('home.customer_profile'))
+
+        # update data
+        customer.name = name
+        customer.email = email
+        customer.phone = phone
+        customer.address = address
+
+        db.session.commit()
+
+        flash("Profile updated successfully!", "success")
+
+        # reload profile page with updated data
+        return redirect(url_for('home.customer_profile'))
+
+    # reload latest data
+    customer = Customer.query.get(customer_id)
+
+    return render_template(
+        'frontend/pages/customer_profile.html',
+        customer=customer
+    )
+
+@home_bp.route('/customer/register', methods=['GET', 'POST'])
+def customer_register():
+    from app import redirect
+    if request.method == 'POST':
+        # Get form data
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+
+        # Simple validation
+        if not name or not email or not password:
+            flash("Name, Email and Password are required.", "error")
+            return redirect(url_for('home.customer_register'))
+
+        # Check if email already exists
+        existing_customer = Customer.query.filter_by(email=email).first()
+        if existing_customer:
+            flash("Email already registered.", "error")
+            return redirect(url_for('home.customer_register'))
+
+        # Hash the password
+        hashed_password = generate_password_hash(password)
+
+        # Create new customer
+        new_customer = Customer(
+            name=name,
+            email=email,
+            phone=phone,
+            password=hashed_password
+        )
+
+        # Save to database
+        db.session.add(new_customer)
+        db.session.commit()
+
+        flash("Account created successfully! Please login.", "success")
+        return redirect(url_for('home.customer_login'))
+
+    # GET request → show registration form
+    return render_template('frontend/pages/customer_register.html')
+
+@home_bp.route('/customer/login', methods=['GET', 'POST'])
+def customer_login():
+    from app import redirect
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not email or not password:
+            flash("Email and Password are required.", "error")
+            return redirect(url_for('home.customer_login'))
+
+        # Find customer by email
+        customer = Customer.query.filter_by(email=email).first()
+        if not customer:
+            flash("No account found with this email.", "error")
+            return redirect(url_for('home.customer_login'))
+
+        # Check hashed password
+        if not check_password_hash(customer.password, password):
+            flash("Incorrect password.", "error")
+            return redirect(url_for('home.customer_login'))
+
+        # Login success → store in session
+        session['customer_id'] = customer.id
+        flash("Logged in successfully!", "success")
+        return redirect(url_for('home.customer_profile'))
+
+    # GET request → render login page
+    return render_template('frontend/pages/customer_login.html')
+
+@home_bp.route('/customer/logout', methods=['POST'])
+def customer_logout():
+    from flask import redirect
+    session.pop('customer_id', None)
+    return redirect(url_for('home.home'))
