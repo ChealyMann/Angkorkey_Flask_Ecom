@@ -52,14 +52,53 @@
             <div class="flex items-center gap-3">
 
                 <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
-                {# <button
+                 <button
                     class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span class="absolute top-1 right-1 h-2 w-2 bg-white rounded-full"></span>
-                </button> #}
+                </button>
+
+                <!-- Account Button (Desktop Only) -->
+                {% if session.get('customer_id') %}
+                    <!-- Account Button when logged in -->
+                    <a href="{{ url_for('home.customer_profile') }}"
+                       class="hidden sm:flex items-center justify-center p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition">
+
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5.121 17.804A9 9 0 1118.879 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </a>
+                {% else %}
+                    <!-- Login / Register Links when not logged in -->
+                    <a href="{{ url_for('home.customer_login') }}"
+                       class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Login
+                    </a>
+                    <a href="{{ url_for('home.customer_register') }}"
+                       class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Register
+                    </a>
+                {% endif %}
+
+                 <!-- Logout Button -->
+                {% if session.get('customer_id') %}
+                <form action="{{ url_for('home.customer_logout') }}" method="POST">
+                    <button
+                        type="submit"
+                        class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
+
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                        </svg>
+
+                    </button>
+                </form>
+                {% endif %}
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden">

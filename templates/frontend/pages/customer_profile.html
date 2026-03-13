@@ -1,0 +1,74 @@
+{% extends("frontend/main.html") %}
+
+{% block content %}
+
+<main class="px-4 sm:px-6 lg:px-8 py-12 max-w-4xl mx-auto">
+
+    <h1 class="text-xl font-bold text-white mb-8 text-center">My Profile</h1>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <!-- Order Tracking Card -->
+        <div class="bg-[#121214] border border-white/5 rounded-2xl p-6 flex flex-col justify-center items-center text-center hover:border-white/20 transition">
+
+            <h2 class="text-white font-semibold mb-2">Order Tracking</h2>
+            <p class="text-gray-500 text-sm mb-4">
+                Track your orders and view history
+            </p>
+
+            <a href=""
+               class="bg-white text-black text-sm px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition">
+                View Orders
+            </a>
+
+        </div>
+
+        <!-- Profile Info -->
+        <div class="md:col-span-2 bg-[#121214] border border-white/5 rounded-2xl p-6">
+
+            <h3 class="text-white font-semibold mb-6">Account Information</h3>
+
+            <form method="POST" class="space-y-4">
+
+                <!-- Name -->
+                <div>
+                    <label class="text-xs text-gray-400">Full Name</label>
+                    <input type="text" name="name" value="{{ customer.name }}"
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="text-xs text-gray-400">Email</label>
+                    <input type="email" name="email" value="{{ customer.email }}"
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="text-xs text-gray-400">Phone</label>
+                    <input type="text" name="phone" value="{{ customer.phone }}"
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="text-xs text-gray-400">Address</label>
+                    <textarea name="address" rows="3"
+                              class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">{{ customer.address if customer else '' }}</textarea>
+                </div>
+
+                <button type="submit"
+                        class="bg-white text-black px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
+                    Update Profile
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</main>
+
+{% endblock %}
