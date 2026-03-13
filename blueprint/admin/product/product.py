@@ -268,9 +268,10 @@ def product_delete_variant(product_id, variant_id):
 
     # 3. Collect file paths BEFORE touching the DB
     files_to_delete = []
+
     if product_variant.images:
         for variant_image in product_variant.images:
-            file_path = os.path.join(current_app.root_path, 'static/images', product_variant.image)
+            file_path = os.path.join(current_app.root_path, 'static/images', variant_image.image)
             files_to_delete.append(file_path)
             db.session.delete(variant_image)  # stage deletions, don't commit yet
 
@@ -287,16 +288,16 @@ def product_delete_variant(product_id, variant_id):
 
     # 5. Only delete files AFTER DB commit succeeds
     for file_path in files_to_delete:
-        if file_path.exists():
+        if os.path.exists(file_path):
             try:
-                file_path.unlink()
+                os.remove(file_path)
             except OSError as e:
                 # Log but don't abort — DB is already consistent
                 logger.warning("Could not delete file %s: %s", file_path, e)
 
     flash('Variant deleted successfully.', 'success')
     # 6. Fixed url_for — no .html suffix
-    return redirect(url_for('product.product_variant', product_id=product_id))
+    return redirect(url_for('product.product_variants', product_id=product_id))
 
 
 @product_bp.route('/admin/product/variant/<int:product_id>')
