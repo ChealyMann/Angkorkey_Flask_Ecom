@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from models import Category, Product, Promotion,Customer
+from models import Category, Product, Promotion, Customer, ProductVariant
 from extensions import db
 from models.Product import getProductDetail
 
@@ -11,8 +11,9 @@ home_bp = Blueprint("home", __name__)
 @home_bp.route("/")
 @home_bp.route("/home")
 def home():
-    products = Product.query.limit(4).all() 
+    products = Product.query.limit(4).all()
     promotions = Promotion.query.filter_by(is_active=True).all()
+
     categories = Category.query.limit(4).all()
     return render_template("frontend/pages/index.html", products=products, promotions=promotions, categories=categories)
 
