@@ -52,7 +52,8 @@
             <div class="flex items-center gap-3">
 
                 <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
-                 <button
+                <a href="{{ url_for('cart_bp.view_cart') }}">
+                    <button
                     class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -60,6 +61,7 @@
                     </svg>
                     <span class="absolute top-1 right-1 h-2 w-2 bg-white rounded-full"></span>
                 </button>
+                </a>
 
                 <!-- Account Button (Desktop Only) -->
                 {% if session.get('customer_id') %}

@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash
 
 import config
 from blueprint.admin.admin import admin_bp
+from blueprint.cart import cart_bp
 from blueprint.home import home_bp
 from blueprint.auth import auth_bp
 from blueprint.admin.product.product import product_bp
@@ -36,6 +37,8 @@ app.register_blueprint(user_bp)
 
 from blueprint.admin.promotion.promotion import promotion_bp
 app.register_blueprint(promotion_bp)
+
+app.register_blueprint(cart_bp)
 
 app.config['logo'] = 'static/admin/assets/images/logo-text-1.png'
 app.config['title'] = 'Angkorkey'

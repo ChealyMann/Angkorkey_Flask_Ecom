@@ -40,11 +40,6 @@ def product_detail(product_id):
     return render_template("frontend/pages/product-detail.html", product=product, related_products=related_products,product_variant=product_variant)
 
 
-@home_bp.route("/cart")
-def cart():
-    return render_template("frontend/pages/cart.html")
-
-
 @home_bp.route("/categories")
 def all_categories():
     categories = Category.query.all()

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Beautiful Todo</title>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+<div id='app' class="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8">
+
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">{{ topic }}</h1>
+        <p class="text-slate-400 text-sm mt-1">Saturday, March 21</p>
+    </div>
+
+    <div class="flex gap-2 mb-8">
+        <input @keyup.enter="add_todo" id="title_input" v-model="title" type="text" placeholder="Add a new task..."
+               class="w-full px-4 py-3 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all text-slate-600">
+        <button @click='add_todo'
+                @keyup.enter="add_todo"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-colors shadow-lg shadow-indigo-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="space-y-4">
+
+        <div v-for="(item , index) in todo_list" :key="item.id"
+             class=" group flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all cursor-pointer">
+            <div class="flex items-center gap-3">
+
+                <input type="checkbox" class="btn-check btn" :checked="item.is_selected"
+                       @click="check_is_selected(item)">
+                <span :class="item.is_selected ? 'line-through' : ''" class="text-slate-700 font-medium ">{{ index + 1 }} , {{ item.title }} </span>
+            </div>
+            <button class="text-slate-300 group-hover:text-red-400 transition-colors">
+                <svg @click="delete_item(index)" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
+        </div>
+
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-slate-100 flex justify-between items-center text-sm">
+        <span class="text-slate-400">{{ todo_list.length }} tasks remaining</span>
+        <button @click="clear_todo" class="text-indigo-600 font-semibold hover:underline">Clear all</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<script>
+    const {createApp} = Vue
+
+    createApp({
+        mounted() {
+
+        },
+        data() {
+            return {
+                topic: "My todo lists",
+                title: '',
+                todo_list: [],
+            }
+        },
+        methods: {
+
+            add_todo() {
+                this.title === '' ? alert("Please enter any value !") : this.todo_list.push({
+                    id: this.todo_list.length + 1,
+                    title: this.title,
+                    is_selected: false
+                })
+                this.title = ''
+                const title_input = document.getElementById('title_input')
+                title_input.focus()
+
+
+            }
+            ,
+
+            clear_todo() {
+                if (confirm("Are you sure to clear all of the list ?")) {
+                    this.todo_list.length === 0 ? alert("No more to do list to clear") : this.todo_list = []
+                }
+
+            }
+            ,
+            check_is_selected(item) {
+                item.is_selected === true ? item.is_selected = false : item.is_selected = true
+            }
+
+            ,
+            delete_item(index) {
+                this.todo_list.splice(index, 1)
+            }
+
+
+        }
+    }).mount('#app')
+</script>
+
+</body>
+
+</html>
