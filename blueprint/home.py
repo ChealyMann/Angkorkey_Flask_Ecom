@@ -1,8 +1,9 @@
+import re
 from flask import Blueprint, render_template, request, flash, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
-
 from models import Category, Product, Promotion,Customer
 from extensions import db
+from blueprint.auth import login_required
 from models.Product import getProductDetail
 
 home_bp = Blueprint("home", __name__)
@@ -11,7 +12,7 @@ home_bp = Blueprint("home", __name__)
 @home_bp.route("/")
 @home_bp.route("/home")
 def home():
-    products = Product.query.limit(4).all() 
+    products = Product.query.limit(4).all()
     promotions = Promotion.query.filter_by(is_active=True).all()
     categories = Category.query.limit(4).all()
     return render_template("frontend/pages/index.html", products=products, promotions=promotions, categories=categories)
@@ -39,7 +40,11 @@ def product_detail(product_id):
     return render_template("frontend/pages/product-detail.html", product=product, related_products=related_products,product_variant=product_variant)
 
 
+# Protect Cart Route
+
+
 @home_bp.route("/cart")
+@login_required
 def cart():
     return render_template("frontend/pages/cart.html")
 
@@ -66,11 +71,11 @@ def products(category_id=None):
     # Optimize: Select only necessary columns
     query = Product.query.options(
         db.load_only(
-            Product.id, 
-            Product.name, 
-            Product.price, 
+            Product.id,
+            Product.name,
+            Product.price,
             Product.old_price,
-            Product.image, 
+            Product.image,
             Product.category_id
         )
     )
@@ -91,11 +96,11 @@ def products(category_id=None):
         from flask import jsonify
         return jsonify({
             'html': render_template(
-                "frontend/layouts/product_grid.html", 
+                "frontend/layouts/product_grid.html",
                 products=products_list
             ),
             'pagination': render_template(
-                "frontend/layouts/_pagination.html", 
+                "frontend/layouts/_pagination.html",
                 pagination=pagination
             ),
             'has_next': pagination.has_next
@@ -116,24 +121,24 @@ def products(category_id=None):
 def promotions():
     search_query = request.args.get("search", "").strip()
     is_ajax = request.args.get("ajax", type=int)
-    
+
     # Fetch products with valid old_price (active promotion)
     query = Product.query.filter(
         Product.old_price.isnot(None),
         Product.old_price > Product.price
     )
-    
+
     if search_query:
         query = query.filter(Product.name.ilike(f"%{search_query}%"))
-        
+
     products = query.all()
-    
+
     if is_ajax:
         from flask import jsonify
         return jsonify({
             'html': render_template("frontend/layouts/product_grid.html", products=products)
         })
-    
+
     return render_template("frontend/pages/promotion_products.html", products=products)
 
 @home_bp.route('/customer/profile', methods=['GET', 'POST'])
@@ -157,13 +162,27 @@ def customer_profile():
             flash("Name and Email are required.", "error")
             return redirect(url_for('home.customer_profile'))
 
+        if phone and not re.match(r"^[0-9+\-\s]{7,15}$", phone):
+            flash("Invalid phone number.", "error")
+            return redirect(url_for('home.customer_profile'))
+
+
         # check email exists for another user
         existing_customer = Customer.query.filter(
             Customer.email == email,
             Customer.id != customer_id
         ).first()
 
+        existing_phone = Customer.query.filter(
+            Customer.phone == phone,
+            Customer.id != customer_id
+        ).first()
+
         if existing_customer:
+            flash("This email is already in use by another account.", "error")
+            return redirect(url_for('home.customer_profile'))
+
+        if existing_phone:
             flash("This email is already in use by another account.", "error")
             return redirect(url_for('home.customer_profile'))
 
@@ -190,29 +209,45 @@ def customer_profile():
 
 @home_bp.route('/customer/register', methods=['GET', 'POST'])
 def customer_register():
-    from app import redirect
+    from flask import redirect
     if request.method == 'POST':
-        # Get form data
         name = request.form.get('name')
         email = request.form.get('email')
         phone = request.form.get('phone')
         password = request.form.get('password')
 
-        # Simple validation
+        # validation
         if not name or not email or not password:
             flash("Name, Email and Password are required.", "error")
-            return redirect(url_for('home.customer_register'))
+            return render_template(
+                'frontend/pages/customer_register.html',
+                name=name,
+                email=email,
+                phone=phone
+            )
 
-        # Check if email already exists
         existing_customer = Customer.query.filter_by(email=email).first()
         if existing_customer:
             flash("Email already registered.", "error")
-            return redirect(url_for('home.customer_register'))
+            return render_template(
+                'frontend/pages/customer_register.html',
+                name=name,
+                email=email,
+                phone=phone
+            )
 
-        # Hash the password
+        existing_phone = Customer.query.filter_by(phone=phone).first()
+        if existing_phone:
+            flash("Phone already registered.", "error")
+            return render_template(
+                'frontend/pages/customer_register.html',
+                name=name,
+                email=email,
+                phone=phone
+            )
+
         hashed_password = generate_password_hash(password)
 
-        # Create new customer
         new_customer = Customer(
             name=name,
             email=email,
@@ -220,44 +255,47 @@ def customer_register():
             password=hashed_password
         )
 
-        # Save to database
         db.session.add(new_customer)
         db.session.commit()
 
         flash("Account created successfully! Please login.", "success")
         return redirect(url_for('home.customer_login'))
 
-    # GET request → show registration form
     return render_template('frontend/pages/customer_register.html')
 
 @home_bp.route('/customer/login', methods=['GET', 'POST'])
 def customer_login():
     from app import redirect
+
+    next_page = request.args.get('next')
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
 
         if not email or not password:
             flash("Email and Password are required.", "error")
-            return redirect(url_for('home.customer_login'))
+            return redirect(url_for('home.customer_login', next=next_page))
 
-        # Find customer by email
         customer = Customer.query.filter_by(email=email).first()
+
         if not customer:
             flash("No account found with this email.", "error")
-            return redirect(url_for('home.customer_login'))
+            return redirect(url_for('home.customer_login', next=next_page))
 
-        # Check hashed password
         if not check_password_hash(customer.password, password):
             flash("Incorrect password.", "error")
-            return redirect(url_for('home.customer_login'))
+            return redirect(url_for('home.customer_login', next=next_page))
 
-        # Login success → store in session
+        # Login success
         session['customer_id'] = customer.id
         flash("Logged in successfully!", "success")
+
+        if next_page:
+            return redirect(next_page)
+
         return redirect(url_for('home.customer_profile'))
 
-    # GET request → render login page
     return render_template('frontend/pages/customer_login.html')
 
 @home_bp.route('/customer/logout', methods=['POST'])
@@ -265,3 +303,4 @@ def customer_logout():
     from flask import redirect
     session.pop('customer_id', None)
     return redirect(url_for('home.home'))
+

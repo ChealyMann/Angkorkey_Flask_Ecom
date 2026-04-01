@@ -1,0 +1,147 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    .akk-input {
+        border: 2px solid #e5e7eb;
+        background-color: #f9fafb;
+    }
+
+    .akk-input:focus {
+        box-shadow: none;
+        background-color: #fff !important;
+        border-color: #dc2626 !important;
+    }
+
+    .border-red-accent {
+        border-top: 4px solid #dc2626;
+    }
+</style>
+
+<div class="font-khmer w-auto mx-5 mt-4">
+
+    <!-- HEADER -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                <i class="fa-solid fa-user-pen me-2 text-danger"></i>
+                កែប្រែអតិថិជន (Edit Customer)
+            </h2>
+        </div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="p-3 shadow-sm border rounded bg-white">
+                <a href="{{ url_for('customer.admin_customer') }}" class="text-decoration-none">
+                    <button class="btn btn-outline-dark">
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+                        ត្រឡប់ក្រោយ
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <form action="{{ url_for('customer.admin_customer_edit', customer_id=customer.id) }}" method="post">
+        {{ form.hidden_tag() }}
+
+        <div class="card shadow-sm border-0 border-red-accent p-4">
+            <div class="row g-4">
+
+                <!-- LEFT -->
+                <div class="col-lg-6">
+
+                    <!-- NAME -->
+                    <div class="form-floating mb-4" name="email">
+                        {{ form.name(class="form-control akk-input rounded", id="nameInput", placeholder="Name") }}
+                        <label for="nameInput">ឈ្មោះ (Name)</label>
+                        {% for error in form.name.errors %}
+                            <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="form-floating mb-4" name="email">
+                        {{ form.email(class="form-control akk-input rounded", id="emailInput", placeholder="Email") }}
+                        <label for="emailInput">អ៊ីមែល (Email)</label>
+                        {% for error in form.email.errors %}
+                            <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- PHONE -->
+                    <div class="form-floating">
+                        {{ form.phone(class="form-control akk-input rounded", id="phoneInput", placeholder="Phone") }}
+                        <label for="phoneInput">លេខទូរស័ព្ទ (Phone)</label>
+                        {% for error in form.phone.errors %}
+                            <span class="text-danger small">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="col-lg-6">
+
+                    <!-- ADDRESS -->
+                    <div class="form-floating mb-4">
+                        {{ form.address(class="form-control akk-input rounded", id="addressInput", placeholder="Address", style="min-height:120px;") }}
+                        <label for="addressInput">អាសយដ្ឋាន (Address)</label>
+                    </div>
+
+                    <!-- PASSWORD (OPTIONAL) -->
+                    <div class="form-floating">
+                        {{ form.password(class="form-control akk-input rounded", id="passwordInput", placeholder="Password") }}
+                        <label for="passwordInput">ពាក្យសម្ងាត់ថ្មី (New Password)</label>
+                        <small class="text-muted">ទុកទទេ ប្រសិនបើមិនចង់ប្តូរ</small>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border rounded bg-white d-flex gap-2">
+
+                    <button type="submit" class="btn btn-dark px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-save me-2 text-danger"></i>
+                        រក្សាទុកការកែប្រែ (Update)
+                    </button>
+
+                    <button type="button" id="btnClear" class="btn btn-outline-danger px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-eraser me-2"></i>
+                        សម្អាត (Clear)
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function clearFormFields() {
+        document.getElementById('nameInput').value = '';
+        document.getElementById('emailInput').value = '';
+        document.getElementById('phoneInput').value = '';
+        document.getElementById('addressInput').value = '';
+        document.getElementById('passwordInput').value = '';
+    }
+
+    document.getElementById('btnClear').addEventListener('click', clearFormFields);
+</script>
+
+{% endblock %}

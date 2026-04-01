@@ -5,12 +5,12 @@ import click
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash
 
-import config
 from blueprint.admin.admin import admin_bp
 from blueprint.home import home_bp
 from blueprint.auth import auth_bp
 from blueprint.admin.product.product import product_bp
 from blueprint.admin.category.category import category_bp
+from blueprint.admin.customer.customer import customer_bp
 from blueprint.admin.user.user import user_bp
 from extensions import db, cache, limiter
 from flask_migrate import Migrate
@@ -32,6 +32,7 @@ app.register_blueprint(product_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(category_bp)
+app.register_blueprint(customer_bp)
 app.register_blueprint(user_bp)
 
 from blueprint.admin.promotion.promotion import promotion_bp
@@ -45,7 +46,6 @@ app.config['SECRET_KEY'] = 'oythaiahleay168'
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["logo"] = "sql_logo.jpg"
 
-import models
 
 @app.before_request
 def before_request():
