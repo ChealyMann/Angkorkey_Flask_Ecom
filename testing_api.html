@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Beautiful Todo</title>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+<div id='app' class="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8">
+
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<script>
+    const {createApp} = Vue
+
+    createApp({
+        mounted() {
+
+            axios.get('http://127.0.0.1:5000/api/cart', {
+                withCredentials: true
+            })
+                .then(function (response) {
+                   console.log(response.data)
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        },
+        data() {
+            return {
+                topic: "My todo lists",
+                title: '',
+                todo_list: [],
+            }
+        },
+        methods: {}
+    }).mount('#app')
+</script>
+
+</body>
+
+</html>

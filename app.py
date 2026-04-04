@@ -6,12 +6,17 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.security import generate_password_hash
 
 import config
+
 from blueprint.admin.admin import admin_bp
+from blueprint.cart import cart_bp
 from blueprint.home import home_bp
 from blueprint.auth import auth_bp
 from blueprint.admin.product.product import product_bp
+from blueprint.admin.promotion.promotion import promotion_bp
 from blueprint.admin.category.category import category_bp
 from blueprint.admin.user.user import user_bp
+from blueprint.order import order_bp
+from blueprint.payment import payment_bp
 from extensions import db, cache, limiter
 from flask_migrate import Migrate
 from models import User, Category
@@ -34,8 +39,12 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(category_bp)
 app.register_blueprint(user_bp)
 
-from blueprint.admin.promotion.promotion import promotion_bp
 app.register_blueprint(promotion_bp)
+
+app.register_blueprint(payment_bp)
+
+app.register_blueprint(cart_bp)
+app.register_blueprint(order_bp)
 
 app.config['logo'] = 'static/admin/assets/images/logo-text-1.png'
 app.config['title'] = 'Angkorkey'

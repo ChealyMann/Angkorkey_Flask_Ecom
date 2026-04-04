@@ -3,17 +3,17 @@
 <!-- ==================== HEAD SECTION ==================== -->
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Keyz Store - Clean Black Mobile</title>
-    <link rel="icon" type="image/jpg" href="{{url_for("static",filename="logo/sq_logo.jpg" )}}">
+    <link rel="icon" type="image/jpg" href="{{ url_for("static",filename="logo/sq_logo.jpg" ) }}">
 
     <!-- External Scripts & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono&display=swap"
-        rel="stylesheet" />
+          rel="stylesheet"/>
 
     <!-- ========== CUSTOM STYLES ========== -->
     <style>
@@ -104,148 +104,152 @@
 </head>
 
 <body class="antialiased selection:bg-indigo-500 selection:text-white min-h-screen pb-20">
-    <!-- ==================== HEADER / NAVIGATION BAR ==================== -->
-    {% include("frontend/layouts/header.html") %}
+<!-- ==================== HEADER / NAVIGATION BAR ==================== -->
+{% include("frontend/layouts/header.html") %}
 
-    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-    <div class="max-w-4xl mx-auto">{% block content %} {% endblock %}</div>
+<!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+<div class="max-w-4xl mx-auto">{% block content %} {% endblock %}</div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="fixed top-5 right-5 z-50 space-y-2">
-        {% for category, message in messages %}
-            <div class="px-4 py-2 rounded-lg text-sm
+        <div class="fixed top-5 right-5 z-50 space-y-2">
+            {% for category, message in messages %}
+                <div class="px-4 py-2 rounded-lg text-sm
             {% if category == 'success' %}
             bg-green-500/20 text-green-400
             {% else %}
             bg-red-500/20 text-red-400
             {% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
-    {% endwith %}
+{% endwith %}
 
-    <!-- ==================== FOOTER ==================== -->
-    {% include("frontend/layouts/footer.html") %}
+<!-- ==================== FOOTER ==================== -->
+{% include("frontend/layouts/footer.html") %}
 
-    <!-- ==================== MOBILE MENU (Off-Canvas) ==================== -->
-    {% include("frontend/layouts/mobile_menu.html") %}
-    {% include("frontend/layouts/mobile_categories.html") %}
+<!-- ==================== MOBILE MENU (Off-Canvas) ==================== -->
+{% include("frontend/layouts/mobile_menu.html") %}
+{% include("frontend/layouts/mobile_categories.html") %}
 
-    <!-- ==================== JAVASCRIPT ==================== -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // ========== CAROUSEL / SLIDER FUNCTIONALITY ==========
-            const carousel = document.getElementById("carousel");
-            if (carousel) {
-                const prevBtn = document.getElementById("prev-btn");
-                const nextBtn = document.getElementById("next-btn");
-                let currentSlide = 0;
-                const totalSlides = carousel.children.length;
+<!-- ==================== JAVASCRIPT ==================== -->
 
-                // Update carousel position
-                function updateSlide() {
-                    const offset = currentSlide * -100;
-                    carousel.style.transform = `translateX(${offset}%)`;
-                }
+{% block script %}
 
-                // Next slide button
-                if (nextBtn) {
-                    nextBtn.addEventListener("click", () => {
-                        currentSlide = (currentSlide + 1) % totalSlides;
-                        updateSlide();
-                    });
-                }
+{% endblock %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // ========== CAROUSEL / SLIDER FUNCTIONALITY ==========
+        const carousel = document.getElementById("carousel");
+        if (carousel) {
+            const prevBtn = document.getElementById("prev-btn");
+            const nextBtn = document.getElementById("next-btn");
+            let currentSlide = 0;
+            const totalSlides = carousel.children.length;
 
-                // Previous slide button
-                if (prevBtn) {
-                    prevBtn.addEventListener("click", () => {
-                        currentSlide =
-                            (currentSlide - 1 + totalSlides) % totalSlides;
-                        updateSlide();
-                    });
-                }
+            // Update carousel position
+            function updateSlide() {
+                const offset = currentSlide * -100;
+                carousel.style.transform = `translateX(${offset}%)`;
+            }
 
-                // Auto-advance carousel every 6 seconds
-                setInterval(() => {
+            // Next slide button
+            if (nextBtn) {
+                nextBtn.addEventListener("click", () => {
                     currentSlide = (currentSlide + 1) % totalSlides;
                     updateSlide();
-                }, 6000);
+                });
             }
 
-            // ========== MOBILE MENU FUNCTIONALITY ==========
-            const mobileMenu = document.getElementById("mobile-menu");
-            const menuOverlay = document.getElementById("menu-overlay");
-            const menuDrawer = mobileMenu.querySelector(
-                ".offcanvas-transition",
-            );
-            const openMenuBtn =
-                document.getElementById("mobile-menu-button");
-            const closeMenuBtn =
-                document.getElementById("close-menu-button");
+            // Previous slide button
+            if (prevBtn) {
+                prevBtn.addEventListener("click", () => {
+                    currentSlide =
+                        (currentSlide - 1 + totalSlides) % totalSlides;
+                    updateSlide();
+                });
+            }
 
-            // Toggle mobile menu open/close
-            function toggleMenu(open) {
+            // Auto-advance carousel every 6 seconds
+            setInterval(() => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlide();
+            }, 6000);
+        }
+
+        // ========== MOBILE MENU FUNCTIONALITY ==========
+        const mobileMenu = document.getElementById("mobile-menu");
+        const menuOverlay = document.getElementById("menu-overlay");
+        const menuDrawer = mobileMenu.querySelector(
+            ".offcanvas-transition",
+        );
+        const openMenuBtn =
+            document.getElementById("mobile-menu-button");
+        const closeMenuBtn =
+            document.getElementById("close-menu-button");
+
+        // Toggle mobile menu open/close
+        function toggleMenu(open) {
+            if (open) {
+                mobileMenu.classList.remove("hidden");
+                document.body.classList.add("overflow-hidden");
+                setTimeout(() => {
+                    menuOverlay.style.opacity = "1";
+                    menuDrawer.style.transform = "translateX(0)";
+                }, 10);
+            } else {
+                menuOverlay.style.opacity = "0";
+                menuDrawer.style.transform = "translateX(100%)";
+                document.body.classList.remove("overflow-hidden");
+                setTimeout(
+                    () => mobileMenu.classList.add("hidden"),
+                    400,
+                );
+            }
+        }
+
+        // Event listeners for mobile menu
+        openMenuBtn.addEventListener("click", () => toggleMenu(true));
+        closeMenuBtn.addEventListener("click", () => toggleMenu(false));
+        menuOverlay.addEventListener("click", () => toggleMenu(false));
+
+        // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
+        const mobileCategoryMenu = document.getElementById("mobile-category-menu");
+        if (mobileCategoryMenu) {
+            const categoryOverlay = document.getElementById("category-overlay");
+            const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
+            const openCategoryBtn = document.getElementById("mobile-category-button");
+            const closeCategoryBtn = document.getElementById("close-category-button");
+
+            function toggleCategoryMenu(open) {
                 if (open) {
-                    mobileMenu.classList.remove("hidden");
+                    mobileCategoryMenu.classList.remove("hidden");
                     document.body.classList.add("overflow-hidden");
+                    // Close main menu if open
+                    if (!mobileMenu.classList.contains("hidden")) {
+                        toggleMenu(false);
+                    }
+
                     setTimeout(() => {
-                        menuOverlay.style.opacity = "1";
-                        menuDrawer.style.transform = "translateX(0)";
+                        categoryOverlay.style.opacity = "1";
+                        categoryDrawer.style.transform = "translateX(0)";
                     }, 10);
                 } else {
-                    menuOverlay.style.opacity = "0";
-                    menuDrawer.style.transform = "translateX(100%)";
+                    categoryOverlay.style.opacity = "0";
+                    categoryDrawer.style.transform = "translateX(100%)";
                     document.body.classList.remove("overflow-hidden");
-                    setTimeout(
-                        () => mobileMenu.classList.add("hidden"),
-                        400,
-                    );
+                    setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
                 }
             }
 
-            // Event listeners for mobile menu
-            openMenuBtn.addEventListener("click", () => toggleMenu(true));
-            closeMenuBtn.addEventListener("click", () => toggleMenu(false));
-            menuOverlay.addEventListener("click", () => toggleMenu(false));
-
-            // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
-            const mobileCategoryMenu = document.getElementById("mobile-category-menu");
-            if (mobileCategoryMenu) {
-                const categoryOverlay = document.getElementById("category-overlay");
-                const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
-                const openCategoryBtn = document.getElementById("mobile-category-button");
-                const closeCategoryBtn = document.getElementById("close-category-button");
-
-                function toggleCategoryMenu(open) {
-                    if (open) {
-                        mobileCategoryMenu.classList.remove("hidden");
-                        document.body.classList.add("overflow-hidden");
-                        // Close main menu if open
-                        if (!mobileMenu.classList.contains("hidden")) {
-                            toggleMenu(false);
-                        }
-                        
-                        setTimeout(() => {
-                            categoryOverlay.style.opacity = "1";
-                            categoryDrawer.style.transform = "translateX(0)";
-                        }, 10);
-                    } else {
-                        categoryOverlay.style.opacity = "0";
-                        categoryDrawer.style.transform = "translateX(100%)";
-                        document.body.classList.remove("overflow-hidden");
-                        setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
-                    }
-                }
-
-                if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
-                if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
-                if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
-            }
-        });
-    </script>
+            if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
+            if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
+            if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
+        }
+    });
+</script>
 </body>
 
 </html>

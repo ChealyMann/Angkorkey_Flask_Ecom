@@ -306,6 +306,8 @@ def product_variants(product_id):
 
     _variants = ProductVariant.query.filter_by(product_id=product_id).all()
 
+
+
     if _variants:
         for _variant in _variants:
             output.append({
@@ -317,6 +319,7 @@ def product_variants(product_id):
                 'price': _variant.price,
                 'discount': _variant.discount_price,
                 'physical_stock': _variant.physical_stock,
+                'reserved_stock' : _variant.reserved_stock,
             })
 
     return render_template('backend/admin/pages/product/product_variant.html',

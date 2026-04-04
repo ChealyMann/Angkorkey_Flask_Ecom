@@ -1,0 +1,21 @@
+{% macro order_status_badge(status) %}
+    {% set config = {
+        1: {"bg": "bg-warning",         "text": "text-dark",    "border": "border-warning", "icon": "fa-clock",             "label": "Pending"},
+        2: {"bg": "bg-success-subtle",  "text": "text-success", "border": "border-success", "icon": "fa-circle-check",      "label": "Confirmed"},
+        3: {"bg": "bg-primary-subtle",  "text": "text-primary", "border": "border-primary", "icon": "fa-truck-fast",        "label": "Shipped"},
+        4: {"bg": "bg-success-subtle",  "text": "text-success", "border": "border-success", "icon": "fa-check-double",      "label": "Completed"},
+        5: {"bg": "bg-danger-subtle",   "text": "text-danger",  "border": "border-danger",  "icon": "fa-xmark-circle",      "label": "Canceled"},
+        6: {"bg": "bg-secondary-subtle","text": "text-secondary","border": "border-secondary","icon": "fa-rotate-left",     "label": "Returned"}
+    } %}
+
+    {% if status in config %}
+        {% set s = config[status] %}
+        <span class="badge {{ s.bg }} {{ s.text }} {{ s.border }} border rounded-pill px-3 py-2">
+            <i class="fa-solid {{ s.icon }} me-1"></i>{{ s.label }}
+        </span>
+    {% else %}
+        <span class="badge bg-light text-muted border rounded-pill px-3 py-2">
+            <i class="fa-solid fa-question me-1"></i>Unknown
+        </span>
+    {% endif %}
+{% endmacro %}
