@@ -31,7 +31,7 @@
 
             <!-- Order (Update href when route is ready) -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('order.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('order.') %}active{% endif %}" href="#" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('order.') %}active{% endif %}" href="{{ url_for('order.order_list') }}" aria-expanded="false">
                     <i data-feather="shopping-cart" class="feather-icon"></i>
                     <span class="hide-menu">Order</span>
                 </a>

@@ -1,0 +1,242 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        .font-khmer {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+
+        .border-light-black {
+            border: 2px solid #dee2e6;
+        }
+
+        .akk-header {
+            background-color: #000000 !important;
+            color: white !important;
+            border-bottom: 2px solid #dc2626 !important;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <div class="font-khmer w-auto mx-5 mt-3 mb-5">
+
+        <div class="row mb-4 align-items-center">
+            <div class="col">
+                <h2 class="fw-bold text-black border-start border-4 border-danger ps-3 mb-0">
+                    <i class="fa-solid fa-file-invoice me-2 text-danger"></i>ព័ត៌មានលម្អិតការបញ្ជាទិញ (Order Details)
+                </h2>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('order.order_list') }}" class="btn btn-outline-dark fw-bold px-4">
+                    <i class="fa-solid fa-arrow-left me-2"></i>ត្រលប់ក្រោយ (Back)
+                </a>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-light-black h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-circle-info me-2 text-danger"></i>ព័ត៌មានទូទៅ
+                            (General Info)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="info-label">Invoice Number</div>
+                                <div class="info-value text-danger">{{ order.invoice_no }}</div>
+
+                                <div class="info-label">Order Date</div>
+                                <div class="info-value">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+
+                                <div class="info-label">Order Status</div>
+                                <form action="{{ url_for('order.update_status') }}" method="POST"
+                                      class="d-flex align-items-center mt-1">
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                                    <select name="status" class="form-select form-select-sm border-dark shadow-sm me-2"
+                                            style="width: 140px;">
+                                        <option value="1" {% if order.status == 1 %}selected{% endif %}>Pending</option>
+                                        <option value="2" {% if order.status == 2 %}selected{% endif %}>Confirmed
+                                        </option>
+                                        <option value="3" {% if order.status == 3 %}selected{% endif %}>Shipped</option>
+                                        <option value="4" {% if order.status == 4 %}selected{% endif %}>Delivered
+                                        </option>
+                                        <option value="5" {% if order.status == 5 %}selected{% endif %}>Canceled
+                                        </option>
+                                        <option value="6" {% if order.status == 6 %}selected{% endif %}>Returned
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-dark fw-bold">Update</button>
+                                </form>
+                            </div>
+                            <div class="col-6">
+                                <div class="info-label">Payment Method</div>
+                                <div class="info-value text-uppercase">{{ order.payment_method }}</div>
+
+                                <div class="info-label">Payment Status</div>
+                                <div class="info-value">
+                                    {% if order.payment_status == 'pending' %}
+                                        <span class="text-danger"><i
+                                                class="fa-solid fa-circle-xmark me-1"></i>Pending</span>
+                                    {% else %}
+                                        <span class="text-success"><i
+                                                class="fa-solid fa-circle-check me-1"></i>Paid</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm border-light-black h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user me-2 text-danger"></i>ព័ត៌មានអតិថិជន
+                            (Customer Info)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-label">Phone Number</div>
+                        <div class="info-value">{{ order.phone }}</div>
+
+                        <div class="info-label">City/Province</div>
+                        <div class="info-value">{{ order.city }}</div>
+
+                        <div class="info-label">Delivery Address</div>
+                        <div class="info-value">{{ order.address }}</div>
+
+                        {% if order.customer_id %}
+                            <div class="info-label mt-3 border-top pt-2">Registered Account ID</div>
+                            <a href="">
+                                <div class="info-value text-primary">Customer
+                                    #{{ order.customer_id }} {{ order.customer.name }}</div>
+                            </a>
+                        {% else %}
+                            <div class="info-label mt-3 border-top pt-2">Account Status</div>
+                            <div class="info-value text-muted">Guest Checkout</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-light-black mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-box-open me-2 text-danger"></i>ទំនិញដែលបានកុម្ម៉ង់
+                    (Order Items)</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-bordered mb-0 align-middle">
+                    <thead class="akk-header">
+                    <tr>
+                        <th class="text-center py-3 akk-header" style="width: 60px;">No</th>
+                        <th class="py-3 akk-header">Product ID / Name</th>
+                        <th class="text-center py-3 akk-header" style="width: 140px;">Unit Price</th>
+                        <th class="text-center py-3 akk-header" style="width: 120px;">Discount</th>
+                        <th class="text-center py-3 akk-header" style="width: 100px;">Qty</th>
+                        <th class="text-end py-3 akk-header pe-4" style="width: 160px;">Sub Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in order.items %}
+                        <tr>
+                            <td class="text-center fw-bold text-secondary">{{ loop.index }}</td>
+
+
+                            <td class="fw-bold text-dark">
+                                Product #{{ item.product_id }}
+                                {{ item.variants.product.name }}
+                                ( {{ item.variants.color }})
+                                {% if item.variant_id %}
+                                    <a href="{{ url_for('product.product_variants', product_id=item.product_id) }}#variant-{{ item.variant_id }}">
+                                        <span class="badge bg-light text-dark border ms-2">Variant #{{ item.variant_id }}</span>
+                                    </a>
+                                {% endif %}
+                            </td>
+
+
+                            <td class="text-center fw-semibold text-muted">${{ "%.2f"|format(item.unit_price) }}</td>
+                            <td class="text-center fw-semibold text-success">
+                                {% if item.unit_discount > 0 %}
+                                    -${{ "%.2f"|format(item.unit_discount) }}
+                                {% else %}
+                                    $0.00
+                                {% endif %}
+                            </td>
+                            <td class="text-center fw-bold">{{ item.qty }}</td>
+                            <td class="text-end fw-bold text-danger pe-4">${{ "%.2f"|format(item.sub_total) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted fw-bold">No items found for this order.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                <div class="card shadow-sm border-light-black">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold text-muted">Sub Total:</span>
+                            <span class="fw-bold">${{ "%.2f"|format(order.sub_total) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold text-muted">Order Discount:</span>
+                            <span class="fw-bold text-success">-${{ "%.2f"|format(order.discount) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                            <span class="fw-semibold text-muted">Shipping Fee:</span>
+                            <span class="fw-bold">${{ "%.2f"|format(order.shipping_fee) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark fs-5">Grand Total:</span>
+                            <span class="fw-bold text-danger fs-3">${{ "%.2f"|format(order.grand_total) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    Swal.fire({
+                        title: '{{ "ជោគជ័យ" if category == "success" else "បរាជ័យ" }}',
+                        text: '{{ message }}',
+                        icon: '{{ category }}',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        confirmButtonColor: "#000000"
+                    });
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+
+{% endblock %}

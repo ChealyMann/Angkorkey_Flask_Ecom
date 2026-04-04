@@ -21,7 +21,7 @@
                         <a href="{{ url_for("home.promotions") }}"
                             class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.promotions' else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Promotions</a>
                     </li>
-                    
+
                     <!-- Categories Dropdown (Text Only) -->
                     <li class="relative dropdown group">
                         <a href="{{url_for('home.all_categories')}}"
@@ -53,12 +53,15 @@
 
                 <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
                  <a href="{{ url_for("home.cart") }}"
+                <a href="{{ url_for('cart_bp.view_cart') }}">
+                    <button
                     class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span class="absolute top-1 right-1 h-2 w-2 bg-white rounded-full"></span>
+                </button>
                 </a>
 
                 <!-- Account Button (Desktop Only) -->

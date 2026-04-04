@@ -17,3 +17,4 @@ class ProductVariant(db.Model):
     def __repr__(self):
         return f'<ProductVariant {self.sku} for Product {self.product_id}>'
 
+

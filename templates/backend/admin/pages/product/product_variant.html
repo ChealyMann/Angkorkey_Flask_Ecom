@@ -5,6 +5,14 @@
           rel="stylesheet">
 
     <style>
+
+        /* This targets the specific row linked from the Order Detail page */
+        .variant-row:target {
+            background-color: lightyellow !important; /* A nice highlight yellow */
+            border: 2px solid #ffc107;
+            transition: background-color 0.5s ease;
+        }
+
         .font-khmer {
             font-family: 'Kantumruy Pro', sans-serif;
         }
@@ -169,7 +177,7 @@
                         </thead>
                         <tbody>
                         {% for variant in output %}
-                            <tr>
+                            <tr id="variant-{{ variant.id }}" class="variant-row">
                                 <td class="text-center fw-bold text-secondary">
                                     {{ loop.index }}
                                 </td>
