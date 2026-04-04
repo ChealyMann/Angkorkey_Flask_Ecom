@@ -1,5 +1,6 @@
+import re
 from sqlite3 import DatabaseError
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for, request
 from extensions import db
 from models import Customer
 from form.CustomerForm import CustomerForm,CustomerFormEdit
@@ -65,15 +66,19 @@ def admin_customer_add():
 # ==============================
 @customer_bp.route('/admin/customer/edit/<int:customer_id>', methods=['GET', 'POST'])
 def admin_customer_edit(customer_id):
-    from flask import request
+
     customer = Customer.query.get_or_404(customer_id)
-    form = CustomerFormEdit(obj=customer)
+
+    if request.method == 'POST':
+        form = CustomerFormEdit()
+    else:
+        form = CustomerFormEdit(obj=customer)
 
     if form.validate_on_submit():
-        new_email = form.email.data.strip()
-        new_phone = form.phone.data.strip()
+        new_email = (form.email.data or "").strip().lower()
+        new_phone = (form.phone.data or "").strip()
+        new_address = (form.address.data or "").strip()
 
-        # check email exists for another user
         existing_customer = Customer.query.filter(
             Customer.email == new_email,
             Customer.id != customer_id
@@ -84,20 +89,23 @@ def admin_customer_edit(customer_id):
             Customer.id != customer_id
         ).first()
 
-        # validation
         if existing_customer:
             flash("This email is already in use by another account.", "error")
-            return redirect(url_for('customer.admin_customer'))
+            return render_template('backend/admin/pages/customer/edit.html', form=form, customer=customer)
 
         if existing_phone:
             flash("This phone is already in use by another account.", "error")
-            return redirect(url_for('customer.admin_customer'))
+            return render_template('backend/admin/pages/customer/edit.html', form=form, customer=customer)
 
-        # ONLY assign after validation passes
-        customer.name = form.name.data.strip()
+        if not re.match(r'^[a-zA-Z0-9\s,.-]{5,200}$', new_address):
+            flash("Invalid address format", "error")
+            return render_template('backend/admin/pages/customer/edit.html', form=form, customer=customer)
+
+        # update
+        customer.name = (form.name.data or "").strip()
         customer.email = new_email
         customer.phone = new_phone
-        customer.address = form.address.data.strip()
+        customer.address = new_address
 
         if form.password.data:
             customer.password = generate_password_hash(form.password.data)
@@ -106,11 +114,13 @@ def admin_customer_edit(customer_id):
             db.session.commit()
             flash('Customer has been updated successfully!', 'success')
             return redirect(url_for('customer.admin_customer'))
-
         except Exception as e:
             db.session.rollback()
             flash('Error updating customer!', 'danger')
             print(e)
+
+    else:
+        print(form.errors)
 
     return render_template(
         'backend/admin/pages/customer/edit.html',

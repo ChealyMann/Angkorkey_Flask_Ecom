@@ -13,7 +13,12 @@ class Customer(db.Model):
 
     phone = db.Column(db.String(20), nullable=True)
 
-    address = db.Column(db.Text, nullable=True)
+    locations = db.relationship(
+        "CustomerLocation",
+        backref="customer",
+        lazy="select",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Customer {self.email}>"

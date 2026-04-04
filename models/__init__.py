@@ -3,5 +3,6 @@ from models.Category import *
 from models.Product import *
 from models.Customer import *
 from models.ProductImage import *
+from models.CustomerLocation import *
 from .Promotion import Promotion
 from .ProductVariant import ProductVariant

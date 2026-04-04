@@ -1,0 +1,113 @@
+{% extends("frontend/main.html") %}
+
+{% block content %}
+<main class="px-4 sm:px-6 lg:px-8 py-10 max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-white">
+            Order #1024
+        </h1>
+
+        <span class="text-xs px-3 py-1 rounded-md bg-yellow-500/20 text-yellow-400">
+            Pending
+        </span>
+    </div>
+
+    <!-- Order Meta -->
+    <div class="bg-[#121214] border border-white/5 rounded-xl p-5 mb-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between gap-4 text-sm text-gray-400">
+            <p>Date: <span class="text-white">2026-04-01</span></p>
+            <p>Items: <span class="text-white">3</span></p>
+            <p>Total: <span class="text-white font-semibold">$120.00</span></p>
+        </div>
+    </div>
+
+    <!-- Products -->
+    <div class="bg-[#121214] border border-white/5 rounded-xl p-5 mb-6">
+        <h2 class="text-white font-semibold mb-4">Items in your order</h2>
+
+        <div class="flex flex-col gap-4">
+
+            <!-- Item -->
+            <div class="flex items-center gap-4 border-b border-white/5 pb-4">
+                <img src="https://via.placeholder.com/80"
+                     class="w-16 h-16 rounded-md object-cover">
+
+                <div class="flex-1">
+                    <h3 class="text-white text-sm font-medium">
+                        Cyberboard Terminal Keyboard
+                    </h3>
+                    <p class="text-xs text-gray-500">Qty: 1</p>
+                </div>
+
+                <span class="text-white text-sm">$199.00</span>
+            </div>
+
+            <!-- Item -->
+            <div class="flex items-center gap-4 border-b border-white/5 pb-4">
+                <img src="https://via.placeholder.com/80"
+                     class="w-16 h-16 rounded-md object-cover">
+
+                <div class="flex-1">
+                    <h3 class="text-white text-sm font-medium">
+                        Wireless Gaming Mouse
+                    </h3>
+                    <p class="text-xs text-gray-500">Qty: 1</p>
+                </div>
+
+                <span class="text-white text-sm">$79.99</span>
+            </div>
+
+            <!-- Item -->
+            <div class="flex items-center gap-4">
+                <img src="https://via.placeholder.com/80"
+                     class="w-16 h-16 rounded-md object-cover">
+
+                <div class="flex-1">
+                    <h3 class="text-white text-sm font-medium">
+                        Desk Mat XL
+                    </h3>
+                    <p class="text-xs text-gray-500">Qty: 1</p>
+                </div>
+
+                <span class="text-white text-sm">$29.99</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-[#121214] border border-white/5 rounded-xl p-5 mb-6">
+        <h2 class="text-white font-semibold mb-4">Order Summary</h2>
+
+        <div class="flex flex-col gap-2 text-sm text-gray-400">
+            <div class="flex justify-between">
+                <span>Subtotal</span>
+                <span class="text-white">$309.00</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Shipping</span>
+                <span class="text-white">$10.00</span>
+            </div>
+            <div class="flex justify-between border-t border-white/10 pt-3 mt-2">
+                <span class="font-semibold text-white">Total</span>
+                <span class="font-semibold text-white">$120.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-between items-center">
+        <a href="#"
+           class="text-sm text-gray-400 hover:text-white transition">
+            ← Back to Orders
+        </a>
+
+        <button class="text-sm bg-white text-black px-4 py-2 rounded-md font-semibold hover:opacity-90">
+            Contact Support
+        </button>
+    </div>
+
+</main>
+{% endblock %}
