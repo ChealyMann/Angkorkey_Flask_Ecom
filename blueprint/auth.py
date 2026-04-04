@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session
+from functools import wraps
+
+from flask import Blueprint, render_template, redirect, url_for, flash, session,request
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from form.UserForm import LoginForm, RegisterForm
@@ -45,3 +47,12 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('auth.login'))
+
+def login_required(f):
+    @wraps(f)
+    def login_required(*args, **kwargs):
+        if 'customer_id' not in session:
+            flash("You need to login first!", "warning")
+            return redirect(url_for('home.customer_login',next=request.path))
+        return f(*args, **kwargs)
+    return login_required

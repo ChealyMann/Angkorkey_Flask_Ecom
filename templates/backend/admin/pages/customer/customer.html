@@ -1,0 +1,212 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .font-khmer {
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    .screen-fit-container {
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .table-scroll-area {
+        flex-grow: 1;
+        overflow-y: auto;
+        border-bottom: 2px solid #000;
+    }
+
+    .table-scroll-area thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid black !important;
+    }
+
+    .akk-header {
+        background-color: #000000 !important;
+        color: white !important;
+        border-bottom: 2px solid #dc2626 !important;
+    }
+
+    .btn-akk-primary {
+        background-color: #000000;
+        color: white;
+        border: 1px solid black;
+    }
+
+    .btn-akk-primary:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #fef2f2 !important;
+    }
+</style>
+
+<div class="font-khmer w-auto mx-5 mt-3 screen-fit-container">
+
+    <!-- HEADER + ADD BUTTON -->
+    <div class="flex-shrink-0">
+
+        <div class="row mb-3">
+            <div class="col">
+                <h2 class="fw-bold text-black border-start border-4 border-danger ps-3">
+                    <i class="fa-solid fa-users me-2 text-danger"></i>
+                    ការគ្រប់គ្រងអតិថិជន (Customer)
+                </h2>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="p-3 shadow-sm border border-2 rounded bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-muted">បញ្ជីអតិថិជន (List)</span>
+
+                    <a href="{{ url_for('customer.admin_customer_add') }}" class="text-decoration-none">
+                        <button class="btn btn-akk-primary shadow-sm">
+                            <i class="fa-solid fa-circle-plus me-2 text-danger"></i>
+                            បង្កើតថ្មី (Add New)
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="card shadow border-0 flex-grow-1 overflow-hidden mb-3">
+        <div class="card-body p-0 d-flex flex-column h-100">
+
+            <div class="table-scroll-area">
+                <table class="table table-hover table-bordered mb-0 align-middle">
+                    <thead class="akk-header">
+                    <tr>
+                        <th class="text-center py-3" style="width: 80px;">ID</th>
+                        <th class="py-3" style="width: 200px;">Name</th>
+                        <th class="py-3" style="width: 250px;">Email</th>
+                        <th class="py-3" style="width: 150px;">Phone</th>
+                        <th class="py-3">Address</th>
+                        <th class="text-center py-3" style="width: 180px;">Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for customer in customers %}
+                        <tr>
+                            <td class="text-center fw-bold text-secondary">
+                                {{ loop.index }}
+                            </td>
+
+                            <td class="fw-bold text-dark">
+                                {{ customer.name }}
+                            </td>
+
+                            <td class="text-dark">
+                                {{ customer.email }}
+                            </td>
+
+                            <td class="text-dark">
+                                {{ customer.phone }}
+                            </td>
+
+                            <td class="text-dark">
+                                {{ customer.address }}
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+
+                                    <!-- EDIT -->
+                                    <a href="{{ url_for('customer.admin_customer_edit', customer_id=customer.id) }}">
+                                        <button class="btn btn-outline-dark btn-sm" title="Edit Customer">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    </a>
+
+                                    <!-- DELETE -->
+                                    <form action="{{ url_for('customer.admin_customer_delete', customer_id=customer.id) }}"
+                                          method="post">
+                                        <button class="btn btn-outline-danger btn-sm btn-delete ms-1"
+                                                title="Delete Customer">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="flex-shrink-0 mb-3">
+        <div class="text-muted small">
+            Total Customers: {{ customers|length }}
+        </div>
+    </div>
+
+</div>
+
+<!-- DELETE CONFIRM -->
+<script>
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const form = this.closest('form');
+
+            Swal.fire({
+                title: "តើអ្នកប្រាកដទេ?",
+                text: "ទិន្នន័យដែលលុបហើយមិនអាចយកមកវិញបានទេ!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#000000",
+                cancelButtonColor: "#dc2626",
+                confirmButtonText: "បាទ/ចាស លុបវា!",
+                cancelButtonText: "បោះបង់"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+
+<!-- FLASH MESSAGE -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <script>
+            {% for category, message in messages %}
+                Swal.fire({
+                    title: '{{ "ជោគជ័យ" if category == "success" else "បរាជ័យ" }}',
+                    text: '{{ message }}',
+                    icon: '{{ category }}',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+            {% endfor %}
+        </script>
+    {% endif %}
+{% endwith %}
+
+{% endblock %}

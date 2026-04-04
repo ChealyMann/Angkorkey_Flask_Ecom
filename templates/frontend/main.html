@@ -244,6 +244,47 @@
                 }
             }
 
+            // Event listeners for mobile menu
+            openMenuBtn.addEventListener("click", () => toggleMenu(true));
+            closeMenuBtn.addEventListener("click", () => toggleMenu(false));
+            menuOverlay.addEventListener("click", () => toggleMenu(false));
+
+            // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
+            const mobileCategoryMenu = document.getElementById("mobile-category-menu");
+            if (mobileCategoryMenu) {
+                const categoryOverlay = document.getElementById("category-overlay");
+                const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
+                const openCategoryBtn = document.getElementById("mobile-category-button");
+                const closeCategoryBtn = document.getElementById("close-category-button");
+
+                function toggleCategoryMenu(open) {
+                    if (open) {
+                        mobileCategoryMenu.classList.remove("hidden");
+                        document.body.classList.add("overflow-hidden");
+                        // Close main menu if open
+                        if (!mobileMenu.classList.contains("hidden")) {
+                            toggleMenu(false);
+                        }
+                        
+                        setTimeout(() => {
+                            categoryOverlay.style.opacity = "1";
+                            categoryDrawer.style.transform = "translateX(0)";
+                        }, 10);
+                    } else {
+                        categoryOverlay.style.opacity = "0";
+                        categoryDrawer.style.transform = "translateX(100%)";
+                        document.body.classList.remove("overflow-hidden");
+                        setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
+                    }
+                }
+
+                if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
+                if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
+                if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
             if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
             if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));

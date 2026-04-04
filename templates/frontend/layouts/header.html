@@ -52,6 +52,7 @@
             <div class="flex items-center gap-3">
 
                 <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
+                 <a href="{{ url_for("home.cart") }}"
                 <a href="{{ url_for('cart_bp.view_cart') }}">
                     <button
                     class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
@@ -88,9 +89,10 @@
 
                  <!-- Logout Button -->
                 {% if session.get('customer_id') %}
-                <form action="{{ url_for('home.customer_logout') }}" method="POST">
+                <form id="logoutForm" action="{{ url_for('home.customer_logout') }}" method="POST">
                     <button
-                        type="submit"
+                        type="button"
+                        onclick="confirmLogout()"
                         class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
 
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,3 +118,23 @@
         </div>
     </div>
 </header>
+
+{#Alert Popup for logout#}
+<script>
+function confirmLogout() {
+    Swal.fire({
+        title: "Logout?",
+        text: "Do you want to logout?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, logout",
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById("logoutForm").submit();
+        }
+    });
+}
+</script>

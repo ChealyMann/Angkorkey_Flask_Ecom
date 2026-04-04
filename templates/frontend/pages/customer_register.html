@@ -13,28 +13,31 @@
 
             <!-- Name -->
             <div>
-                <label class="text-xs text-gray-400">Full Name</label>
+                <label class="text-xs text-gray-400">Full Name<span class="text-danger">(*)</span></label>
                 <input type="text" name="name" required
+                       value="{{ name or '' }}"
                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
             </div>
 
             <!-- Email -->
             <div>
-                <label class="text-xs text-gray-400">Email</label>
+                <label class="text-xs text-gray-400">Email<span class="text-danger">(*)</span></label>
                 <input type="email" name="email" required
+                       value="{{ email or '' }}"
                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
             </div>
 
             <!-- Phone -->
             <div>
-                <label class="text-xs text-gray-400">Phone</label>
+                <label class="text-xs text-gray-400">Phone<span class="text-danger">(*)</span></label>
                 <input type="text" name="phone"
+                       value="{{ phone or '' }}"
                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
             </div>
 
             <!-- Password -->
             <div>
-                <label class="text-xs text-gray-400">Password</label>
+                <label class="text-xs text-gray-400">Password<span class="text-danger">(*)</span></label>
                 <input type="password" name="password" required
                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
             </div>
