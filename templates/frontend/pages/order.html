@@ -1,0 +1,485 @@
+{% extends("frontend/main.html") %}
+{% block content %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+    #checkout-app { font-family: 'DM Sans', sans-serif; }
+    h1, h2, h3, .font-display { font-family: 'Syne', sans-serif; }
+
+    #map {
+        height: 320px;
+        border-radius: 16px;
+        z-index: 0;
+        border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* Override Leaflet tiles to match dark theme */
+    .leaflet-tile-pane { filter: brightness(0.75) saturate(0.6) contrast(1.1); }
+
+    /* Payment card */
+    .pay-card {
+        cursor: pointer;
+        border: 1.5px solid rgba(255,255,255,0.07);
+        background: #0e0e10;
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: border-color .2s, background .2s;
+    }
+    .pay-card.selected {
+        border-color: rgba(255,255,255,0.5);
+        background: #1a1a1d;
+    }
+    .pay-card:hover:not(.selected) { border-color: rgba(255,255,255,0.18); }
+
+    .pay-radio {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.3);
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: border-color .2s;
+    }
+    .pay-card.selected .pay-radio { border-color: #fff; }
+    .pay-radio-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #fff;
+        transform: scale(0);
+        transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+    }
+    .pay-card.selected .pay-radio-dot { transform: scale(1); }
+
+    /* Input */
+    .field {
+        background: #0e0e10;
+        border: 1.5px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        color: #fff;
+        width: 100%;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        outline: none;
+        transition: border-color .2s;
+    }
+    .field:focus { border-color: rgba(255,255,255,0.35); }
+    .field::placeholder { color: #555; }
+
+    label { font-size: 12px; color: #888; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+
+    /* Pin pulse */
+    .map-pin-hint {
+        position: absolute;
+        bottom: 10px; left: 50%; transform: translateX(-50%);
+        z-index: 9;
+        background: rgba(0,0,0,0.75);
+        color: #bbb;
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 99px;
+        pointer-events: none;
+        white-space: nowrap;
+        backdrop-filter: blur(6px);
+    }
+
+    /* Geocode badge */
+    #geo-badge {
+        font-size: 11px;
+        color: #aaa;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-top: 8px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255,255,255,0.07);
+    }
+    #geo-badge.visible { display: flex; }
+
+    .spinner {
+        width: 14px; height: 14px;
+        border: 2px solid rgba(255,255,255,0.15);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Checkout button */
+    .btn-checkout {
+        width: 100%;
+        background: #fff;
+        color: #000;
+        border-radius: 14px;
+        height: 52px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: .02em;
+        display: flex; align-items: center; justify-content: center; gap-8px;
+        transition: background .2s, transform .1s;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-checkout:hover { background: #e8e8e8; }
+    .btn-checkout:active { transform: scale(.98); }
+    .btn-checkout:disabled { opacity: .45; cursor: not-allowed; }
+</style>
+
+<div id="checkout-app">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
+
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-white mb-2">Checkout</h1>
+        <p class="text-gray-500 text-sm mb-8">Complete your order details below</p>
+
+        <form action="{{ url_for('order.order') }}" method="POST" id="order-form">
+
+            <!-- Hidden coords -->
+            <input type="hidden" name="latitude"  id="inp-lat">
+            <input type="hidden" name="longitude" id="inp-lng">
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+
+                <!-- ── LEFT COLUMN ─────────────────────────────── -->
+                <div class="lg:col-span-7 space-y-8">
+
+                    <!-- ① Delivery Info ────────────────────────── -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-5">
+                            <span class="w-7 h-7 rounded-full bg-white text-black text-xs font-display font-bold flex items-center justify-center">1</span>
+                            <h2 class="text-white font-display font-semibold text-lg">Delivery Information</h2>
+                        </div>
+
+                        <div class="bg-[#121214] rounded-2xl p-5 border border-white/5 space-y-4">
+                            <div>
+                                <label for="phone">Phone Number</label>
+                                <input id="phone" name="phone" type="tel" required
+                                       class="field" placeholder="+855 12 345 678">
+                            </div>
+
+                            <div>
+                                <label for="address">Street Address</label>
+                                <input id="address" name="address" type="text" required
+                                       class="field" placeholder="House / Street / Building">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="city">City / Province</label>
+                                    <input id="city" name="city" type="text" required
+                                           class="field" placeholder="Phnom Penh">
+                                </div>
+                                <div>
+                                    <label for="country">Country</label>
+                                    <input id="country" name="country" type="text"
+                                           class="field" value="Cambodia" readonly style="opacity:.5;cursor:default;">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ② Drop Pin on Map ──────────────────────── -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-5">
+                            <span class="w-7 h-7 rounded-full bg-white text-black text-xs font-display font-bold flex items-center justify-center">2</span>
+                            <h2 class="text-white font-display font-semibold text-lg">Pin Your Location</h2>
+                        </div>
+
+                        <div class="bg-[#121214] rounded-2xl p-5 border border-white/5">
+                            <p class="text-gray-500 text-xs mb-3">Click anywhere on the map to drop a pin. We'll fill in your address automatically.</p>
+
+                            <div class="relative">
+                                <div id="map"></div>
+                                <div class="map-pin-hint">📍 Click to drop pin</div>
+                            </div>
+
+                            <!-- Geocoded address badge -->
+                            <div id="geo-badge">
+                                <div class="spinner" id="geo-spinner"></div>
+                                <span id="geo-text" class="truncate"></span>
+                            </div>
+
+                            <!-- Coords display -->
+                            <div class="flex gap-4 mt-3">
+                                <div class="flex-1">
+                                    <label>Latitude</label>
+                                    <input id="disp-lat" class="field" readonly placeholder="—" style="opacity:.6;cursor:default;">
+                                </div>
+                                <div class="flex-1">
+                                    <label>Longitude</label>
+                                    <input id="disp-lng" class="field" readonly placeholder="—" style="opacity:.6;cursor:default;">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ③ Payment Method ───────────────────────── -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-5">
+                            <span class="w-7 h-7 rounded-full bg-white text-black text-xs font-display font-bold flex items-center justify-center">3</span>
+                            <h2 class="text-white font-display font-semibold text-lg">Payment Method</h2>
+                        </div>
+
+                        <div class="bg-[#121214] rounded-2xl p-5 border border-white/5 space-y-3">
+
+                            <!-- Cash on Delivery -->
+                            <div class="pay-card selected" data-method="cash_on_delivery" @click="selectPayment('cash_on_delivery')">
+                                <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 text-lg">💵</div>
+                                <div class="flex-1">
+                                    <p class="text-white text-sm font-medium">Cash on Delivery</p>
+                                    <p class="text-gray-500 text-xs mt-0.5">Pay when your order arrives</p>
+                                </div>
+                                <span class="text-green-400 text-xs font-medium">Available</span>
+                            </div>
+
+                            <!-- ABA Bank / QR -->
+                            <div class="pay-card" data-method="aba_qr" @click="selectPayment('aba_qr')">
+                                <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 text-lg">📱</div>
+                                <div class="flex-1">
+                                    <p class="text-white text-sm font-medium">ABA Pay / KHQR</p>
+                                    <p class="text-gray-500 text-xs mt-0.5">Scan QR code via ABA Mobile</p>
+                                </div>
+                                <span class="text-blue-400 text-xs font-medium">Instant</span>
+                            </div>
+
+                            <!-- Wing -->
+                            <div class="pay-card" data-method="wing" @click="selectPayment('wing')">
+                                <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 text-lg">🏦</div>
+                                <div class="flex-1">
+                                    <p class="text-white text-sm font-medium">Wing Money</p>
+                                    <p class="text-gray-500 text-xs mt-0.5">Transfer via Wing wallet</p>
+                                </div>
+                                <span class="text-yellow-400 text-xs font-medium">Available</span>
+                            </div>
+
+                            <!-- Credit / Debit Card -->
+                            <div class="pay-card" data-method="card" @click="selectPayment('card')">
+                                <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 text-lg">💳</div>
+                                <div class="flex-1">
+                                    <p class="text-white text-sm font-medium">Credit / Debit Card</p>
+                                    <p class="text-gray-500 text-xs mt-0.5">Visa, Mastercard, JCB</p>
+                                </div>
+                                <span class="text-purple-400 text-xs font-medium">Secure</span>
+                            </div>
+
+                            <input type="hidden" name="payment_method" id="inp-payment" value="cash_on_delivery">
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- ── RIGHT COLUMN — Order Summary ─────────────── -->
+                <div class="lg:col-span-5">
+                    <div class="bg-[#121214] rounded-2xl p-6 border border-white/5 lg:sticky lg:top-24 space-y-5">
+
+                        <h2 class="text-white font-display font-bold text-lg">Order Summary</h2>
+
+                        <!-- Items list -->
+                        <div class="space-y-3 max-h-64 overflow-y-auto pr-1" style="scrollbar-width:thin;scrollbar-color:#333 transparent;">
+                            {% for item in cart_items %}
+                            <div class="flex gap-3 items-center">
+                                <div class="w-12 h-12 rounded-lg bg-black border border-white/5 flex-shrink-0 overflow-hidden">
+                                    <img src="{{ url_for('static', filename='images/' + item.image) }}"
+                                         class="w-full h-full object-cover" alt="">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white text-sm font-medium truncate">{{ item.product_name }}</p>
+                                    <p class="text-gray-500 text-xs">{{ item.color }} · Qty {{ item.quantity }}</p>
+                                </div>
+                                <span class="text-white text-sm font-semibold flex-shrink-0">${{ "%.2f"|format(item.price) }}</span>
+                            </div>
+                            {% else %}
+                            <p class="text-gray-600 text-sm text-center py-4">No items in cart</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="border-t border-white/8 pt-4 space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Subtotal</span>
+                                <span class="text-white">${{ "%.2f"|format(cart_summary.total) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Shipping</span>
+                                <span class="text-green-400 font-medium">Free</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Tax</span>
+                                <span class="text-white">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-white/8 pt-4 flex justify-between items-end">
+                            <span class="text-gray-300 font-display font-semibold">Total</span>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500 block">USD</span>
+                                <span class="text-3xl font-display font-bold text-white">${{ "%.2f"|format(cart_summary.total) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Selected payment badge -->
+                        <div class="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2 border border-white/8">
+                            <span class="text-base" id="badge-icon">💵</span>
+                            <span class="text-gray-300 text-xs" id="badge-label">Cash on Delivery</span>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" class="btn-checkout" id="btn-place">
+                            Place Order →
+                        </button>
+
+                        <p class="text-center text-gray-600 text-xs">
+                            By placing your order you agree to our
+                            <a href="#" class="text-gray-400 underline underline-offset-2">Terms</a> &amp;
+                            <a href="#" class="text-gray-400 underline underline-offset-2">Privacy Policy</a>
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+    </main>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+/* ─── Vue App ─────────────────────────────────────────────────── */
+const { createApp } = Vue
+
+createApp({
+    delimiters: ['[[', ']]'],
+
+    data() {
+        return {
+            selectedPayment: 'cash_on_delivery',
+            paymentMeta: {
+                cash_on_delivery: { icon: '💵', label: 'Cash on Delivery' },
+                aba_qr:           { icon: '📱', label: 'ABA Pay / KHQR' },
+                wing:             { icon: '🏦', label: 'Wing Money' },
+                card:             { icon: '💳', label: 'Credit / Debit Card' },
+            },
+            marker: null,
+            map: null,
+            geocoding: false,
+        }
+    },
+
+    mounted() {
+        this.$nextTick(() => this.initMap())
+    },
+
+    methods: {
+
+        /* ── Map ─────────────────────────────────────────── */
+        initMap() {
+            // Default: Phnom Penh
+            this.map = L.map('map', { zoomControl: true }).setView([11.5564, 104.9282], 13)
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(this.map)
+
+            this.map.on('click', (e) => this.onMapClick(e.latlng))
+        },
+
+        onMapClick({ lat, lng }) {
+            // Remove previous marker
+            if (this.marker) this.map.removeLayer(this.marker)
+
+            const icon = L.divIcon({
+                html: `<div style="
+                    width:32px;height:32px;
+                    background:#fff;
+                    border:3px solid #000;
+                    border-radius:50% 50% 50% 0;
+                    transform:rotate(-45deg);
+                    box-shadow:0 4px 16px rgba(0,0,0,.5);
+                "></div>`,
+                className: '',
+                iconAnchor: [16, 32],
+            })
+
+            this.marker = L.marker([lat, lng], { icon }).addTo(this.map)
+
+            // Fill hidden + display inputs
+            document.getElementById('inp-lat').value  = lat.toFixed(7)
+            document.getElementById('inp-lng').value  = lng.toFixed(7)
+            document.getElementById('disp-lat').value = lat.toFixed(6)
+            document.getElementById('disp-lng').value = lng.toFixed(6)
+
+            // Reverse geocode
+            this.reverseGeocode(lat, lng)
+        },
+
+        async reverseGeocode(lat, lng) {
+            const badge   = document.getElementById('geo-badge')
+            const spinner = document.getElementById('geo-spinner')
+            const geoText = document.getElementById('geo-text')
+
+            badge.classList.add('visible')
+            spinner.style.display = 'block'
+            geoText.textContent   = 'Detecting address…'
+
+            try {
+                // Calls your Flask endpoint which uses geopy internally
+                const { data } = await axios.get('/api/geocode/reverse', {
+                    params: { lat, lng }
+                })
+
+                if (data.success) {
+                    geoText.textContent = data.address
+
+                    // Auto-fill form fields
+                    if (data.street)
+                        document.getElementById('address').value = data.street
+                    if (data.city)
+                        document.getElementById('city').value = data.city
+                } else {
+                    geoText.textContent = 'Could not detect address'
+                }
+            } catch (err) {
+                console.error('[geocode]', err)
+                geoText.textContent = 'Address lookup failed'
+            } finally {
+                spinner.style.display = 'none'
+            }
+        },
+
+        /* ── Payment ─────────────────────────────────────── */
+        selectPayment(method) {
+            this.selectedPayment = method
+            document.getElementById('inp-payment').value = method
+
+            // Toggle card styles
+            document.querySelectorAll('.pay-card').forEach(el => {
+                el.classList.toggle('selected', el.dataset.method === method)
+            })
+
+            // Update summary badge
+            const meta = this.paymentMeta[method]
+            document.getElementById('badge-icon').textContent  = meta.icon
+            document.getElementById('badge-label').textContent = meta.label
+        },
+    },
+}).mount('#checkout-app')
+</script>
+{% endblock %}

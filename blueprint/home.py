@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import Category, Product, Promotion, Customer, ProductVariant
 from extensions import db
 from models.Product import getProductDetail
+from functions.functions import generate_secure_invoice
 
 home_bp = Blueprint("home", __name__)
 

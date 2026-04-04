@@ -17,6 +17,8 @@ class Cart(db.Model):
     variant_id   = db.Column(db.Integer, db.ForeignKey('product_variants.id', ondelete='SET NULL'),
                              nullable=True)
 
+    variant = db.relationship('ProductVariant', foreign_keys=[variant_id])
+
     # Snapshots — captured once at add-time, never updated
     product_name = db.Column(db.String(100), nullable=False)
     color        = db.Column(db.String(50),  nullable=True)
@@ -26,6 +28,7 @@ class Cart(db.Model):
 
     quantity     = db.Column(db.Integer, default=1, nullable=False)
     added_at     = db.Column(db.DateTime, server_default=db.func.now())
+    status = db.Column(db.Integer, default=1)  # 1: Pending, 2: Checkout
 
     @validates('quantity')
     def validate_quantity(self, key, value):

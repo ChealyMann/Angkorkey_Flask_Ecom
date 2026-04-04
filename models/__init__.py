@@ -6,3 +6,5 @@ from models.ProductImage import *
 from .Promotion import Promotion
 from .ProductVariant import ProductVariant
 from models.Cart import *
+from models.Order import *
+from models.OrderItem import *
