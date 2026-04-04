@@ -5,6 +5,8 @@ import click
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash
 
+import config
+
 from blueprint.admin.admin import admin_bp
 from blueprint.home import home_bp
 from blueprint.auth import auth_bp
