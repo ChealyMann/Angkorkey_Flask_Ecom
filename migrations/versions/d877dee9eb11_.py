@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 1f1d0a75b7b5
+Revision ID: d877dee9eb11
 Revises: 
-Create Date: 2026-04-03 19:15:01.401147
+Create Date: 2026-03-09 18:27:08.194195
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1f1d0a75b7b5'
+revision = 'd877dee9eb11'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,6 +33,7 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
     sa.Column('phone', sa.String(length=20), nullable=True),
+    sa.Column('address', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -54,15 +55,6 @@ def upgrade():
     sa.Column('image', sa.String(length=100), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username')
-    )
-    op.create_table('customer_location',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('customer_id', sa.Integer(), nullable=False),
-    sa.Column('address', sa.Text(), nullable=False),
-    sa.Column('latitude', sa.Float(), nullable=True),
-    sa.Column('longitude', sa.Float(), nullable=True),
-    sa.ForeignKeyConstraint(['customer_id'], ['customer.id'], ),
-    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('product',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -116,7 +108,6 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_product_category_id'))
 
     op.drop_table('product')
-    op.drop_table('customer_location')
     op.drop_table('user')
     op.drop_table('promotion')
     op.drop_table('customer')

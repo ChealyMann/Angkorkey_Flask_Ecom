@@ -16,7 +16,7 @@
                 Track your orders and view history
             </p>
 
-            <a href="{{ url_for('home.customer_order') }}"
+            <a href=""
                class="bg-white text-black text-sm px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition">
                 View Orders
             </a>
@@ -34,50 +34,32 @@
                 <div>
                     <label class="text-xs text-gray-400">Full Name</label>
                     <input type="text" name="name" value="{{ customer.name }}"
-                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
                 </div>
 
                 <!-- Email -->
                 <div>
                     <label class="text-xs text-gray-400">Email</label>
                     <input type="email" name="email" value="{{ customer.email }}"
-                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
                 </div>
 
                 <!-- Phone -->
                 <div>
                     <label class="text-xs text-gray-400">Phone</label>
                     <input type="text" name="phone" value="{{ customer.phone }}"
-                        class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
+                           class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">
                 </div>
 
-                <!-- Locations -->
+                <!-- Address -->
                 <div>
-                    <label class="text-xs text-gray-400">Saved Locations<span> (For Delivery)</span></label>
-
-                    <div class="flex gap-2 mt-1">
-                        <!-- Dropdown -->
-                        <select id="locationSelect"
-                            class="flex-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white">
-
-                            {% for loc in customer.locations %}
-                                <option value="{{ loc.id }}">
-                                    {{ loc.label  }}
-                                </option>
-                            {% endfor %}
-                        </select>
-
-                        <!-- + Button -->
-                        <button type="button" onclick="openLocationModal()"
-                            class="w-10 h-10 flex items-center justify-center bg-white text-black rounded-lg font-bold text-lg hover:opacity-90 transition">
-                            +
-                        </button>
-                    </div>
+                    <label class="text-xs text-gray-400">Address</label>
+                    <textarea name="address" rows="3"
+                              class="w-full mt-1 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30">{{ customer.address if customer else '' }}</textarea>
                 </div>
 
-                <!-- Submit -->
                 <button type="submit"
-                    class="bg-white text-black px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
+                        class="bg-white text-black px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
                     Update Profile
                 </button>
 
@@ -87,127 +69,6 @@
 
     </div>
 
-    <!-- Modal -->
-    <div id="locationModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
-        <div class="bg-[#121214] p-6 rounded-xl w-full max-w-md">
-
-            <h3 class="text-white font-semibold mb-4">Add New Location</h3>
-
-            <input id="locLabel" type="text" placeholder="Label (Home, Work)"
-                class="w-full mb-3 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white">
-
-            <textarea id="locAddress" placeholder="Address"
-                class="w-full mb-3 bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-white"></textarea>
-            <input type="hidden" id="lat">
-            <input type="hidden" id="lng">
-
-            <!-- GPS Button -->
-            <button onclick="getLocation()"
-                class="mb-3 text-xs bg-white text-black px-3 py-1 rounded-lg hover:opacity-90">
-                Use Current Location
-            </button>
-
-            <div class="flex justify-end gap-2">
-                <button type="button" onclick="closeLocationModal()" class="text-gray-400">
-                    Cancel
-                </button>
-
-                <button type="button" onclick="saveLocation()"
-                    class="bg-white text-black px-4 py-1 rounded-lg text-sm font-semibold">
-                    Save
-                </button>
-            </div>
-
-        </div>
-    </div>
-
 </main>
-<!-- JS -->
-<script>
-// Open modal
-function openLocationModal() {
-    document.getElementById("locationModal").classList.remove("hidden");
-}
 
-// Close modal
-function closeLocationModal() {
-    document.getElementById("locationModal").classList.add("hidden");
-}
-
-// Get GPS + convert to Khmer address
-function getLocation() {
-    const addressField = document.getElementById("locAddress");
-    const latField = document.getElementById("lat");
-    const lngField = document.getElementById("lng");
-
-    if (!navigator.geolocation) {
-        alert("កម្មវិធីមិនគាំទ្រ GPS ទេ");
-        return;
-    }
-
-    addressField.value = "កំពុងរកទីតាំង...";
-
-    navigator.geolocation.getCurrentPosition(
-        async function(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-
-            try {
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=km`
-                );
-
-                const data = await response.json();
-
-                if (data && data.display_name) {
-                    addressField.value = data.display_name;
-                } else {
-                    addressField.value = "មិនមានអាសយដ្ឋាន";
-                }
-
-                // store hidden values
-                latField.value = lat;
-                lngField.value = lon;
-
-            } catch (error) {
-                console.error(error);
-                addressField.value = "មានបញ្ហាក្នុងការទាញយកទីតាំង";
-            }
-        },
-        function(error) {
-            addressField.value = "";
-            alert("មិនអាចយកទីតាំងបានទេ");
-        }
-    );
-}
-function saveLocation() {
-    const label = document.getElementById("locLabel").value;
-    const address = document.getElementById("locAddress").value;
-    const lat = document.getElementById("lat").value;
-    const lng = document.getElementById("lng").value;
-
-    if (!address) {
-        return; // let backend handle flash
-    }
-
-    fetch("/add-location", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            label: label,
-            address: address,
-            latitude: lat,
-            longitude: lng
-        })
-    })
-    .then(res => {
-        // reload page so Flask flash shows
-        window.location.reload();
-    })
-    .catch(() => {
-        window.location.reload();
-    });
-}
-</script>
 {% endblock %}

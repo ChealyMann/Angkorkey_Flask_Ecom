@@ -1,8 +1,7 @@
 import re
-from sqlalchemy.orm import joinedload
-from flask import Blueprint, render_template, request, flash, url_for, session, jsonify
+from flask import Blueprint, render_template, request, flash, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Category, Product, Promotion,Customer,CustomerLocation
+from models import Category, Product, Promotion,Customer
 from extensions import db
 from blueprint.auth import login_required
 from models.Product import getProductDetail
@@ -151,17 +150,14 @@ def customer_profile():
         flash("Please log in to access your profile.", "error")
         return redirect(url_for('home.customer_login'))
 
-    # Load customer WITH locations
-    customer = Customer.query.options(
-        joinedload(Customer.locations)
-    ).get_or_404(customer_id)
+    customer = Customer.query.get_or_404(customer_id)
 
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
         phone = request.form.get('phone')
+        address = request.form.get('address')
 
-        # Validation
         if not name or not email:
             flash("Name and Email are required.", "error")
             return redirect(url_for('home.customer_profile'))
@@ -170,103 +166,46 @@ def customer_profile():
             flash("Invalid phone number.", "error")
             return redirect(url_for('home.customer_profile'))
 
-        # Check duplicate email
+
+        # check email exists for another user
         existing_customer = Customer.query.filter(
             Customer.email == email,
             Customer.id != customer_id
         ).first()
 
+        existing_phone = Customer.query.filter(
+            Customer.phone == phone,
+            Customer.id != customer_id
+        ).first()
+
         if existing_customer:
-            flash("This email is already in use.", "error")
+            flash("This email is already in use by another account.", "error")
             return redirect(url_for('home.customer_profile'))
 
-        # Check duplicate phone (only if phone exists)
-        if phone:
-            existing_phone = Customer.query.filter(
-                Customer.phone == phone,
-                Customer.id != customer_id
-            ).first()
+        if existing_phone:
+            flash("This email is already in use by another account.", "error")
+            return redirect(url_for('home.customer_profile'))
 
-            if existing_phone:
-                flash("This phone is already in use.", "error")
-                return redirect(url_for('home.customer_profile'))
-
-        #  Update ONLY basic info (DO NOT TOUCH locations)
+        # update data
         customer.name = name
         customer.email = email
         customer.phone = phone
+        customer.address = address
 
         db.session.commit()
 
         flash("Profile updated successfully!", "success")
+
+        # reload profile page with updated data
         return redirect(url_for('home.customer_profile'))
 
-    #  Render with locations
+    # reload latest data
+    customer = Customer.query.get(customer_id)
+
     return render_template(
         'frontend/pages/customer_profile.html',
         customer=customer
     )
-
-@home_bp.route("/add-location", methods=["POST"])
-def add_location():
-    from flask import redirect
-    customer_id = session.get("customer_id")
-    if not customer_id:
-        flash("Unauthorized", "error")
-        return redirect(url_for('home.customer_profile'))
-
-    try:
-        data = request.get_json()
-
-        label = data.get("label", "Address")
-        address = data.get("address")
-        latitude = data.get("latitude")
-        longitude = data.get("longitude")
-
-        if not address:
-            flash("Address is required", "error")
-            return redirect(url_for('home.customer_profile'))
-
-        # check duplicate location
-        existing_location = CustomerLocation.query.filter_by(
-            customer_id=customer_id,
-            latitude=float(latitude) if latitude else None,
-            longitude=float(longitude) if longitude else None
-        ).first()
-
-        if existing_location:
-            flash("Location already exists", "error")
-            return redirect(url_for('home.customer_profile'))
-
-        # check duplicate label
-        existing_label = CustomerLocation.query.filter_by(
-            customer_id=customer_id,
-            label=label
-        ).first()
-
-        if existing_label:
-            flash("Label already exists", "error")
-            return redirect(url_for('home.customer_profile'))
-
-        # create
-        new_location = CustomerLocation(
-            customer_id=customer_id,
-            label=label,
-            address=address,
-            latitude=float(latitude) if latitude else None,
-            longitude=float(longitude) if longitude else None
-        )
-
-        db.session.add(new_location)
-        db.session.commit()
-
-        flash("Location added successfully!", "success")
-        return redirect(url_for('home.customer_profile'))
-
-    except Exception as e:
-        print("ERROR:", e)
-        flash("Server error", "error")
-        return redirect(url_for('home.customer_profile'))
 
 @home_bp.route('/customer/register', methods=['GET', 'POST'])
 def customer_register():
@@ -364,13 +303,4 @@ def customer_logout():
     from flask import redirect
     session.pop('customer_id', None)
     return redirect(url_for('home.home'))
-
-@home_bp.route('/customer/order', methods=['GET', 'POST'])
-def customer_order():
-    return render_template('frontend/pages/customer_order.html')
-
-@home_bp.route('/customer/order_detail', methods=['GET', 'POST'])
-def customer_order_detail():
-    return render_template('frontend/pages/customer_order_detail.html')
-
 
