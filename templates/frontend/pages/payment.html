@@ -72,8 +72,13 @@
             <strong>How to pay:</strong><br>
             1. Open your banking app.<br>
             2. Scan this QR code.<br>
+            <form action="{{ url_for('payment.check_payment',qr=qr) }}" method="POST">
+                <input type="submit" value="Click">
+                <input type="hidden" name="qr" value="{{ qr }}">
+            </form>
         </div>
     </div>
+
 
 </body>
 </html>

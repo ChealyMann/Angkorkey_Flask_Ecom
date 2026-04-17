@@ -1,21 +1,17 @@
 <!doctype html>
 <html lang="en" class="dark">
-<!-- ==================== HEAD SECTION ==================== -->
-
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Keyz Store - Clean Black Mobile</title>
-    <link rel="icon" type="image/jpg" href="{{ url_for("static",filename="logo/sq_logo.jpg" ) }}">
+    <link rel="icon" type="image/jpg" href="{{ url_for('static', filename='logo/sq_logo.jpg') }}">
 
-    <!-- External Scripts & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono&display=swap"
           rel="stylesheet"/>
 
-    <!-- ========== CUSTOM STYLES ========== -->
     <style>
         /* --- Base & Typography --- */
         body {
@@ -104,10 +100,8 @@
 </head>
 
 <body class="antialiased selection:bg-indigo-500 selection:text-white min-h-screen pb-20">
-<!-- ==================== HEADER / NAVIGATION BAR ==================== -->
 {% include("frontend/layouts/header.html") %}
 
-<!-- ==================== MAIN CONTENT CONTAINER ==================== -->
 <div class="max-w-4xl mx-auto">{% block content %} {% endblock %}</div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -127,18 +121,14 @@
     {% endif %}
 {% endwith %}
 
-<!-- ==================== FOOTER ==================== -->
 {% include("frontend/layouts/footer.html") %}
 
-<!-- ==================== MOBILE MENU (Off-Canvas) ==================== -->
 {% include("frontend/layouts/mobile_menu.html") %}
 {% include("frontend/layouts/mobile_categories.html") %}
 
-<!-- ==================== JAVASCRIPT ==================== -->
-
 {% block script %}
-
 {% endblock %}
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         // ========== CAROUSEL / SLIDER FUNCTIONALITY ==========
@@ -166,8 +156,7 @@
             // Previous slide button
             if (prevBtn) {
                 prevBtn.addEventListener("click", () => {
-                    currentSlide =
-                        (currentSlide - 1 + totalSlides) % totalSlides;
+                    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
                     updateSlide();
                 });
             }
@@ -182,38 +171,34 @@
         // ========== MOBILE MENU FUNCTIONALITY ==========
         const mobileMenu = document.getElementById("mobile-menu");
         const menuOverlay = document.getElementById("menu-overlay");
-        const menuDrawer = mobileMenu.querySelector(
-            ".offcanvas-transition",
-        );
-        const openMenuBtn =
-            document.getElementById("mobile-menu-button");
-        const closeMenuBtn =
-            document.getElementById("close-menu-button");
+        const openMenuBtn = document.getElementById("mobile-menu-button");
+        const closeMenuBtn = document.getElementById("close-menu-button");
 
-        // Toggle mobile menu open/close
-        function toggleMenu(open) {
-            if (open) {
-                mobileMenu.classList.remove("hidden");
-                document.body.classList.add("overflow-hidden");
-                setTimeout(() => {
-                    menuOverlay.style.opacity = "1";
-                    menuDrawer.style.transform = "translateX(0)";
-                }, 10);
-            } else {
-                menuOverlay.style.opacity = "0";
-                menuDrawer.style.transform = "translateX(100%)";
-                document.body.classList.remove("overflow-hidden");
-                setTimeout(
-                    () => mobileMenu.classList.add("hidden"),
-                    400,
-                );
+        if (mobileMenu && menuOverlay) {
+            const menuDrawer = mobileMenu.querySelector(".offcanvas-transition");
+
+            // Toggle mobile menu open/close
+            function toggleMenu(open) {
+                if (open) {
+                    mobileMenu.classList.remove("hidden");
+                    document.body.classList.add("overflow-hidden");
+                    setTimeout(() => {
+                        menuOverlay.style.opacity = "1";
+                        if (menuDrawer) menuDrawer.style.transform = "translateX(0)";
+                    }, 10);
+                } else {
+                    menuOverlay.style.opacity = "0";
+                    if (menuDrawer) menuDrawer.style.transform = "translateX(100%)";
+                    document.body.classList.remove("overflow-hidden");
+                    setTimeout(() => mobileMenu.classList.add("hidden"), 400);
+                }
             }
-        }
 
-        // Event listeners for mobile menu
-        openMenuBtn.addEventListener("click", () => toggleMenu(true));
-        closeMenuBtn.addEventListener("click", () => toggleMenu(false));
-        menuOverlay.addEventListener("click", () => toggleMenu(false));
+            // Event listeners for mobile menu
+            if (openMenuBtn) openMenuBtn.addEventListener("click", () => toggleMenu(true));
+            if (closeMenuBtn) closeMenuBtn.addEventListener("click", () => toggleMenu(false));
+            menuOverlay.addEventListener("click", () => toggleMenu(false));
+        }
 
         // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
         const mobileCategoryMenu = document.getElementById("mobile-category-menu");
@@ -227,70 +212,36 @@
                 if (open) {
                     mobileCategoryMenu.classList.remove("hidden");
                     document.body.classList.add("overflow-hidden");
-                    // Close main menu if open
-                    if (!mobileMenu.classList.contains("hidden")) {
-                        toggleMenu(false);
+
+                    // Close main menu if open (requires mobileMenu to exist)
+                    if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
+                        // Reset mobile menu styling to hide it
+                        menuOverlay.style.opacity = "0";
+                        const menuDrawer = mobileMenu.querySelector(".offcanvas-transition");
+                        if (menuDrawer) menuDrawer.style.transform = "translateX(100%)";
+                        setTimeout(() => mobileMenu.classList.add("hidden"), 400);
                     }
 
                     setTimeout(() => {
-                        categoryOverlay.style.opacity = "1";
-                        categoryDrawer.style.transform = "translateX(0)";
+                        if (categoryOverlay) categoryOverlay.style.opacity = "1";
+                        if (categoryDrawer) categoryDrawer.style.transform = "translateX(0)";
                     }, 10);
                 } else {
-                    categoryOverlay.style.opacity = "0";
-                    categoryDrawer.style.transform = "translateX(100%)";
+                    if (categoryOverlay) categoryOverlay.style.opacity = "0";
+                    if (categoryDrawer) categoryDrawer.style.transform = "translateX(100%)";
                     document.body.classList.remove("overflow-hidden");
                     setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
                 }
             }
 
-            // Event listeners for mobile menu
-            openMenuBtn.addEventListener("click", () => toggleMenu(true));
-            closeMenuBtn.addEventListener("click", () => toggleMenu(false));
-            menuOverlay.addEventListener("click", () => toggleMenu(false));
-
-            // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
-            const mobileCategoryMenu = document.getElementById("mobile-category-menu");
-            if (mobileCategoryMenu) {
-                const categoryOverlay = document.getElementById("category-overlay");
-                const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
-                const openCategoryBtn = document.getElementById("mobile-category-button");
-                const closeCategoryBtn = document.getElementById("close-category-button");
-
-                function toggleCategoryMenu(open) {
-                    if (open) {
-                        mobileCategoryMenu.classList.remove("hidden");
-                        document.body.classList.add("overflow-hidden");
-                        // Close main menu if open
-                        if (!mobileMenu.classList.contains("hidden")) {
-                            toggleMenu(false);
-                        }
-                        
-                        setTimeout(() => {
-                            categoryOverlay.style.opacity = "1";
-                            categoryDrawer.style.transform = "translateX(0)";
-                        }, 10);
-                    } else {
-                        categoryOverlay.style.opacity = "0";
-                        categoryDrawer.style.transform = "translateX(100%)";
-                        document.body.classList.remove("overflow-hidden");
-                        setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
-                    }
-                }
-
-                if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
-                if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
-                if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
-            }
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
             if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
             if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
         }
     });
 </script>
-</body>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</body>
 </html>

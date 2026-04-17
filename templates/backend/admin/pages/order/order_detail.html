@@ -124,7 +124,7 @@
 
                         {% if order.customer_id %}
                             <div class="info-label mt-3 border-top pt-2">Registered Account ID</div>
-                            <a href="">
+                            <a href="{{ url_for('customer.admin_customer_edit',customer_id = order.customer_id) }}">
                                 <div class="info-value text-primary">Customer
                                     #{{ order.customer_id }} {{ order.customer.name }}</div>
                             </a>
