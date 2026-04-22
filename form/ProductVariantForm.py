@@ -23,6 +23,14 @@ class ProductVariantForm(FlaskForm):
     type = StringField('Type/Size', validators=[DataRequired()])
 
     price = DecimalField('Price', validators=[DataRequired()])
+
+    purchase_cost = DecimalField(
+        'Purchase Cost',
+        validators=[Optional(), NumberRange(min=0)],
+        default=Decimal('0.00'),
+        places=2
+    )
+
     discount_price = DecimalField(
         'Discount Price',
         validators=[Optional(), NumberRange(min=0, message="Price cannot be negative")], default=Decimal('0.00')
@@ -34,5 +42,6 @@ class ProductVariantForm(FlaskForm):
         Optional(),
         FileAllowed(['jpg', 'png', 'webp', 'jpeg'], 'Images only!')
     ])
+
 
     submit = SubmitField('Submit')

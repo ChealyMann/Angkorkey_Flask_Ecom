@@ -2,20 +2,24 @@
     <nav class="sidebar-nav">
         <ul id="sidebarnav">
             <!-- Dashboard -->
-            <li class="sidebar-item {% if request.endpoint == 'admin.admin' %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint == 'admin.admin' %}active{% endif %}" href="{{ url_for('admin.admin') }}" aria-expanded="false">
-                    <i data-feather="home" class="feather-icon"></i>
+             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('report.') %}selected{% endif %}">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('report.') %}active{% endif %}"
+                   href="{{ url_for('report.sales_report') }}"
+                   aria-expanded="false">
+                    <i data-feather="bar-chart-2" class="feather-icon"></i>
                     <span class="hide-menu">Dashboard</span>
                 </a>
             </li>
-            
+
+
             <li class="list-divider"></li>
             <li class="nav-small-cap"><span class="hide-menu">Management</span></li>
 
 
             <!-- Category -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('category.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('category.') %}active{% endif %}" href="{{ url_for('category.admin_category') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('category.') %}active{% endif %}"
+                   href="{{ url_for('category.admin_category') }}" aria-expanded="false">
                     <i data-feather="layers" class="feather-icon"></i>
                     <span class="hide-menu">Category</span>
                 </a>
@@ -23,23 +27,27 @@
 
             <!-- Product -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('product.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('product.') %}active{% endif %}" href="{{ url_for('product.product') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('product.') %}active{% endif %}"
+                   href="{{ url_for('product.product') }}" aria-expanded="false">
                     <i data-feather="box" class="feather-icon"></i>
                     <span class="hide-menu">Product</span>
                 </a>
             </li>
 
-            <!-- Order (Update href when route is ready) -->
+            <!-- Order -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('order.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('order.') %}active{% endif %}" href="{{ url_for('order.order_list') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('order.') %}active{% endif %}"
+                   href="{{ url_for('order.order_list') }}" aria-expanded="false">
                     <i data-feather="shopping-cart" class="feather-icon"></i>
                     <span class="hide-menu">Order</span>
                 </a>
             </li>
 
+
             <!-- Customer (Update href when route is ready) -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('customer.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('customer.') %}active{% endif %}" href="{{ url_for('customer.admin_customer') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('customer.') %}active{% endif %}"
+                   href="{{ url_for('customer.admin_customer') }}" aria-expanded="false">
                     <i data-feather="users" class="feather-icon"></i>
                     <span class="hide-menu">Customer</span>
                 </a>
@@ -47,15 +55,17 @@
 
             <!-- User -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('user.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('user.') %}active{% endif %}" href="{{ url_for('user.admin_user') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('user.') %}active{% endif %}"
+                   href="{{ url_for('user.admin_user') }}" aria-expanded="false">
                     <i data-feather="user" class="feather-icon"></i>
                     <span class="hide-menu">User</span>
                 </a>
             </li>
-            
+
             <!-- Promotion -->
             <li class="sidebar-item {% if request.endpoint and request.endpoint.startswith('promotion.') %}selected{% endif %}">
-                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('promotion.') %}active{% endif %}" href="{{ url_for('promotion.promotion') }}" aria-expanded="false">
+                <a class="sidebar-link {% if request.endpoint and request.endpoint.startswith('promotion.') %}active{% endif %}"
+                   href="{{ url_for('promotion.promotion') }}" aria-expanded="false">
                     <i data-feather="image" class="feather-icon"></i>
                     <span class="hide-menu">Promotion</span>
                 </a>

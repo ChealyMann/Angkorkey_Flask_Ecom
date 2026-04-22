@@ -42,30 +42,55 @@ def product():
 @product_bp.route('/admin/product/add', methods=['GET', 'POST'])
 def product_add():
     form = ProductForm()
+
     if form.validate_on_submit():
-        unique_filename = 'none.jpg'  # Default Image
+        unique_filename = 'none.jpg'
         if form.image.data:
-            unique_filename = save_image(form.image.data,
-                                         current_app.config.get('UPLOAD_FOLDER'),
-                                         current_app.config['ALLOWED_EXTENSIONS'])
+            unique_filename = save_image(
+                form.image.data,
+                current_app.config.get('UPLOAD_FOLDER'),
+                current_app.config['ALLOWED_EXTENSIONS']
+            )
+
         _product = Product(
             name=form.name.data,
             desc=form.desc.data,
-            price=form.price.data,
-            old_price=form.old_price.data,
+            price=0,
+            old_price=0,
             image=str(unique_filename),
-            cost=form.cost.data,
+            cost=0,
             status=form.status.data,
             category_id=form.category.data.id,
+            has_variants=form.has_variants.data,
         )
-        db.session.add(_product)
-        db.session.commit()
 
-        flash('Product Added Successfully', 'success')
-        return redirect(url_for('product.product'))
+        db.session.add(_product)
+        db.session.flush()
+
+
+        default_variant = ProductVariant(
+            product_id=_product.id,
+            sku=f"{_product.id}-DEFAULT",
+            color="Default",
+            type="Default",
+            price=form.price.data,
+            purchase_cost=form.cost.data,
+            discount_price=form.old_price.data,
+            physical_stock=form.stock_qty.data or 0,
+            reserved_stock=0,
+            )
+        db.session.add(default_variant)
+
+        try:
+            db.session.commit()
+            flash('Product Added Successfully', 'success')
+            return redirect(url_for('product.product'))
+        except Exception:
+            db.session.rollback()
+            flash('Failed to add product.', 'danger')
+            return redirect(url_for('product.product_add'))
 
     return render_template('backend/admin/pages/product/add.html', form=form)
-
 
 @product_bp.route('/admin/product/edit/<int:product_id>', methods=['GET', 'POST'])
 def product_edit(product_id):
@@ -76,9 +101,9 @@ def product_edit(product_id):
     if form.validate_on_submit():
         _product.name = form.name.data
         _product.desc = form.desc.data
-        _product.price = form.price.data
-        _product.old_price = form.old_price.data
-        _product.cost = form.cost.data
+        # _product.price = form.price.data
+        # _product.old_price = form.old_price.data
+        # _product.cost = form.cost.data
         _product.status = form.status.data
         _product.category_id = form.category.data.id
 
@@ -105,9 +130,9 @@ def product_edit(product_id):
     if request.method == 'GET':
         form.name.data = _product.name
         form.desc.data = _product.desc
-        form.price.data = _product.price
-        form.old_price.data = _product.old_price
-        form.cost.data = _product.cost
+        # form.price.data = _product.price
+        # form.old_price.data = _product.old_price
+        # form.cost.data = _product.cost
         form.status.data = _product.status
         form.category.data = _product.category_id  # Note: ត្រូវប្រាកដថា form field នេះទទួលយក ID
 
@@ -212,50 +237,63 @@ def product_image_delete(image_id):
 
 @product_bp.route('/admin/product/add_variant/<int:product_id>', methods=['GET', 'POST'])
 def product_add_variant(product_id):
-    # product_id for easy return back to listing page
-
     form = ProductVariantForm()
     form.product_id.data = Product.query.get_or_404(product_id)
 
-    # happen only when user hit submit via post
     if form.validate_on_submit():
         product_variant = ProductVariant(
             product_id=product_id,
             sku=form.sku.data,
-            price=form.price.data,
-            discount_price=form.discount_price.data,
-            physical_stock=form.physical_stock.data,
-            reserved_stock=0,
             color=form.color.data,
             type=form.type.data,
+            price=form.price.data,
+            discount_price=form.discount_price.data,
+            purchase_cost=form.purchase_cost.data,
+            physical_stock=form.physical_stock.data or 0,
+            reserved_stock=0,
         )
 
         db.session.add(product_variant)
         db.session.commit()
 
-        flash('Product Added Successfully', 'success')
+        flash('Variant added successfully', 'success')
         return redirect(url_for('product.product'))
 
-    return render_template('backend/admin/pages/product/product_add_variant.html', form=form, product_id=product_id)
-
+    return render_template(
+        'backend/admin/pages/product/product_add_variant.html',
+        form=form,
+        product_id=product_id
+    )
 
 @product_bp.route('/admin/product/edit_variant/<int:product_id>/<int:variant_id>', methods=['GET', 'POST'])
 def product_edit_variant(product_id, variant_id):
-    product_variant = ProductVariant.query.filter_by(product_id=product_id, id=variant_id).first()
+    product_variant = ProductVariant.query.filter_by(product_id=product_id, id=variant_id).first_or_404()
 
     form = ProductVariantForm(obj=product_variant)
     form.product_id.data = product_variant.product
 
     if form.validate_on_submit():
-        form.populate_obj(product_variant)
         product_variant.product_id = product_id
+        product_variant.sku = form.sku.data
+        product_variant.color = form.color.data
+        product_variant.type = form.type.data
+        product_variant.price = form.price.data
+        product_variant.discount_price = form.discount_price.data
+        product_variant.purchase_cost = form.purchase_cost.data
+        product_variant.physical_stock = form.physical_stock.data or 0
+
         db.session.commit()
 
-        flash('Product Added Successfully', 'success')
+        flash('Variant updated successfully', 'success')
         return redirect(url_for('product.product'))
 
-    return render_template('backend/admin/pages/product/product_edit_variant.html', form=form,
-                           product_variant=product_variant, product_id=product_id, variant_id=variant_id)
+    return render_template(
+        'backend/admin/pages/product/product_edit_variant.html',
+        form=form,
+        product_variant=product_variant,
+        product_id=product_id,
+        variant_id=variant_id
+    )
 
 logger = logging.getLogger(__name__)
 @product_bp.route('/admin/product/delete_variant/<int:product_id>/<int:variant_id>', methods=['POST'])

@@ -1976,7 +1976,7 @@
     }
 
     return element.offsetParent;
-  } // `.offsetParent` reports `null` for fixed elements, while absolute elements
+  } // `.offsetParent` report `null` for fixed elements, while absolute elements
   // return the containing block
 
 

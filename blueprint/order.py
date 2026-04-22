@@ -8,6 +8,9 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from functions.functions import _cart_payload, _customer_id, generate_secure_invoice, login_required
 from models import Order, OrderItem, Cart
 from extensions import db
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
+
 
 order_bp = Blueprint('order', __name__)
 
@@ -246,16 +249,56 @@ def reverse_geocode():
 
 @order_bp.route('/admin/order')
 def order_list():
-    page = request.args.get(get_page_parameter(), default=1, type=int)
-    per_page = 10
-    pagination_obj = Order.query.order_by(Order.created_at.desc()).paginate(page=page, per_page=per_page,
-                                                                            error_out=False)
-    pagination = Pagination(page=page, per_page=per_page, total=pagination_obj.total, css_framework='bootstrap5')
+    cambodia_tz = ZoneInfo("Asia/Phnom_Penh")
+    today_kh = datetime.now(cambodia_tz).date()
 
-    return render_template('backend/admin/pages/order/order.html', orders={
-        'list': pagination_obj.items,
-        'pagination': pagination,
-    })
+    selected_date = request.args.get('order_date', '').strip()
+    sort_order = request.args.get('sort', 'desc').strip().lower()
+
+    page = request.args.get(get_page_parameter(), default=1, type=int)
+    per_page = 7
+
+    query = Order.query
+
+    # default = today Cambodia time
+    filter_date = today_kh
+
+    if selected_date:
+        try:
+            filter_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+        except ValueError:
+            filter_date = today_kh
+
+    start_dt = datetime.combine(filter_date, time.min).replace(tzinfo=cambodia_tz)
+    end_dt = datetime.combine(filter_date, time.max).replace(tzinfo=cambodia_tz)
+
+    query = query.filter(
+        Order.created_at >= start_dt,
+        Order.created_at <= end_dt
+    )
+
+    if sort_order == 'asc':
+        query = query.order_by(Order.created_at.asc())
+    else:
+        query = query.order_by(Order.created_at.desc())
+
+    pagination_obj = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = Pagination(
+        page=page,
+        per_page=per_page,
+        total=pagination_obj.total,
+        css_framework='bootstrap5'
+    )
+
+    return render_template(
+        'backend/admin/pages/order/order.html',
+        orders={
+            'list': pagination_obj.items,
+            'pagination': pagination,
+        },
+        selected_date=filter_date.strftime('%Y-%m-%d'),
+        sort_order=sort_order
+    )
 
 
 @order_bp.route('/admin/order/delete/<int:order_id>', methods=['POST'])
@@ -319,3 +362,6 @@ def update_status():
         flash('Something went wrong updating the order. Please try again.', 'danger')
 
     return redirect(url_for('order.order_detail', order_id=order.id))
+
+
+

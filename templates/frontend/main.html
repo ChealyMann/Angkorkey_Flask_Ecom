@@ -19,7 +19,6 @@
             background-color: #09090b;
             color: #e4e4e7;
             padding-bottom: 80px;
-            /* Space for bottom nav on mobile */
         }
 
         @media (min-width: 768px) {
@@ -50,7 +49,6 @@
                 opacity: 0;
                 transform: translateY(-0.5rem) scale(0.98);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -96,6 +94,18 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* --- Cart Badge Pop Animation --- */
+        @keyframes badgePop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.4); }
+            70%  { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .cart-badge-pop {
+            animation: badgePop 0.35s ease-out;
+        }
     </style>
 </head>
 
@@ -122,7 +132,6 @@
 {% endwith %}
 
 {% include("frontend/layouts/footer.html") %}
-
 {% include("frontend/layouts/mobile_menu.html") %}
 {% include("frontend/layouts/mobile_categories.html") %}
 
@@ -131,6 +140,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+
         // ========== CAROUSEL / SLIDER FUNCTIONALITY ==========
         const carousel = document.getElementById("carousel");
         if (carousel) {
@@ -139,13 +149,10 @@
             let currentSlide = 0;
             const totalSlides = carousel.children.length;
 
-            // Update carousel position
             function updateSlide() {
-                const offset = currentSlide * -100;
-                carousel.style.transform = `translateX(${offset}%)`;
+                carousel.style.transform = `translateX(${currentSlide * -100}%)`;
             }
 
-            // Next slide button
             if (nextBtn) {
                 nextBtn.addEventListener("click", () => {
                     currentSlide = (currentSlide + 1) % totalSlides;
@@ -153,7 +160,6 @@
                 });
             }
 
-            // Previous slide button
             if (prevBtn) {
                 prevBtn.addEventListener("click", () => {
                     currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
@@ -161,7 +167,6 @@
                 });
             }
 
-            // Auto-advance carousel every 6 seconds
             setInterval(() => {
                 currentSlide = (currentSlide + 1) % totalSlides;
                 updateSlide();
@@ -169,15 +174,14 @@
         }
 
         // ========== MOBILE MENU FUNCTIONALITY ==========
-        const mobileMenu = document.getElementById("mobile-menu");
-        const menuOverlay = document.getElementById("menu-overlay");
-        const openMenuBtn = document.getElementById("mobile-menu-button");
+        const mobileMenu   = document.getElementById("mobile-menu");
+        const menuOverlay  = document.getElementById("menu-overlay");
+        const openMenuBtn  = document.getElementById("mobile-menu-button");
         const closeMenuBtn = document.getElementById("close-menu-button");
 
         if (mobileMenu && menuOverlay) {
             const menuDrawer = mobileMenu.querySelector(".offcanvas-transition");
 
-            // Toggle mobile menu open/close
             function toggleMenu(open) {
                 if (open) {
                     mobileMenu.classList.remove("hidden");
@@ -194,8 +198,7 @@
                 }
             }
 
-            // Event listeners for mobile menu
-            if (openMenuBtn) openMenuBtn.addEventListener("click", () => toggleMenu(true));
+            if (openMenuBtn)  openMenuBtn.addEventListener("click",  () => toggleMenu(true));
             if (closeMenuBtn) closeMenuBtn.addEventListener("click", () => toggleMenu(false));
             menuOverlay.addEventListener("click", () => toggleMenu(false));
         }
@@ -203,9 +206,9 @@
         // ========== MOBILE CATEGORY MENU FUNCTIONALITY ==========
         const mobileCategoryMenu = document.getElementById("mobile-category-menu");
         if (mobileCategoryMenu) {
-            const categoryOverlay = document.getElementById("category-overlay");
-            const categoryDrawer = mobileCategoryMenu.querySelector(".offcanvas-transition");
-            const openCategoryBtn = document.getElementById("mobile-category-button");
+            const categoryOverlay  = document.getElementById("category-overlay");
+            const categoryDrawer   = mobileCategoryMenu.querySelector(".offcanvas-transition");
+            const openCategoryBtn  = document.getElementById("mobile-category-button");
             const closeCategoryBtn = document.getElementById("close-category-button");
 
             function toggleCategoryMenu(open) {
@@ -213,9 +216,7 @@
                     mobileCategoryMenu.classList.remove("hidden");
                     document.body.classList.add("overflow-hidden");
 
-                    // Close main menu if open (requires mobileMenu to exist)
                     if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
-                        // Reset mobile menu styling to hide it
                         menuOverlay.style.opacity = "0";
                         const menuDrawer = mobileMenu.querySelector(".offcanvas-transition");
                         if (menuDrawer) menuDrawer.style.transform = "translateX(100%)";
@@ -224,21 +225,65 @@
 
                     setTimeout(() => {
                         if (categoryOverlay) categoryOverlay.style.opacity = "1";
-                        if (categoryDrawer) categoryDrawer.style.transform = "translateX(0)";
+                        if (categoryDrawer)  categoryDrawer.style.transform = "translateX(0)";
                     }, 10);
                 } else {
                     if (categoryOverlay) categoryOverlay.style.opacity = "0";
-                    if (categoryDrawer) categoryDrawer.style.transform = "translateX(100%)";
+                    if (categoryDrawer)  categoryDrawer.style.transform = "translateX(100%)";
                     document.body.classList.remove("overflow-hidden");
                     setTimeout(() => mobileCategoryMenu.classList.add("hidden"), 400);
                 }
             }
 
-            if (openCategoryBtn) openCategoryBtn.addEventListener("click", () => toggleCategoryMenu(true));
+            if (openCategoryBtn)  openCategoryBtn.addEventListener("click",  () => toggleCategoryMenu(true));
             if (closeCategoryBtn) closeCategoryBtn.addEventListener("click", () => toggleCategoryMenu(false));
-            if (categoryOverlay) categoryOverlay.addEventListener("click", () => toggleCategoryMenu(false));
+            if (categoryOverlay)  categoryOverlay.addEventListener("click",  () => toggleCategoryMenu(false));
         }
+
+        // ========== CART BADGE ==========
+        updateCartBadge();
     });
+
+    // ─────────────────────────────────────────────────────────
+    //  updateCartBadge — fetch /api/cart and update the badge
+    //  Call this any time the cart changes (add, remove, etc.)
+    // ─────────────────────────────────────────────────────────
+    async function updateCartBadge() {
+        try {
+            const res = await fetch('/api/cart');
+            if (!res.ok) return;                      // guest / not logged in → do nothing
+
+            const data  = await res.json();
+
+            // Support both total_quantity field and fallback calculation
+            const count = data.total_quantity
+                ?? (data.items ?? []).reduce((sum, i) => sum + (i.quantity ?? 1), 0);
+
+            const badge = document.getElementById('cart-badge');
+            if (!badge) return;
+
+            if (count > 0) {
+                const prev = badge.textContent.trim();
+                badge.textContent = count > 99 ? '99+' : count;
+
+                // Show badge
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+
+                // Pop animation when count changes
+                if (String(count) !== prev) {
+                    badge.classList.remove('cart-badge-pop');
+                    void badge.offsetWidth;             // reflow to restart animation
+                    badge.classList.add('cart-badge-pop');
+                }
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+            }
+        } catch (_) {
+            // Fail silently — user may not be logged in
+        }
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
