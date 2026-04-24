@@ -33,7 +33,7 @@ class ProductVariantForm(FlaskForm):
 
     discount_price = DecimalField(
         'Discount Price',
-        validators=[Optional(), NumberRange(min=0, message="Price cannot be negative")], default=Decimal('0.00')
+        validators=[Optional(), NumberRange(min=0, message="Price cannot be negative")]
     )
     physical_stock = IntegerField('Physical Stock', validators=[Optional()])
 

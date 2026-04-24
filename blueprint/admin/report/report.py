@@ -392,7 +392,7 @@ def build_low_stock_report_data():
                 'sku': row.sku or '-',
                 'color': row.color or '-',
                 'type': row.type or '-',
-                'price': float(row.discount_price if row.discount_price is not None else (row.price or 0)),
+                'price': row.price or 0,
                 'purchase_cost': float(row.purchase_cost or 0),
                 'physical_stock': physical_stock,
                 'reserved_stock': reserved_stock,
@@ -758,13 +758,13 @@ def export_low_stock_report():
 
     title_fill = PatternFill(start_color="111827", end_color="111827", fill_type="solid")
     header_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
-    section_fill = PatternFill(start_color="E5E7EB", end_color="E5E7EB", fill_type="solid")
     white_font = Font(color="FFFFFF", bold=True)
     bold_font = Font(bold=True)
     center = Alignment(horizontal="center", vertical="center")
     thin = Side(style='thin', color='D1D5DB')
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
+    # 8 columns only now: A to H
     ws.merge_cells('A1:H1')
     ws['A1'] = 'Low Stock Report'
     ws['A1'].fill = title_fill
@@ -775,15 +775,23 @@ def export_low_stock_report():
     ws['B2'] = report['total_items']
     ws['A3'] = 'Total Available Units'
     ws['B3'] = report['total_available_units']
+
     ws['A2'].font = bold_font
     ws['A3'].font = bold_font
 
     row = 5
+
     headers = [
-        'Product', 'SKU', 'Color', 'Type',
-        'Price', 'Purchase Cost', 'Physical Stock',
-        'Reserved Stock', 'Available Stock', 'Stock Status'
+        'Product',
+        'SKU',
+        'Color',
+        'Type',
+        'Physical Stock',
+        'Reserved Stock',
+        'Available Stock',
+        'Stock Status'
     ]
+
     for idx, header in enumerate(headers, start=1):
         cell = ws.cell(row=row, column=idx, value=header)
         cell.fill = header_fill
@@ -793,16 +801,20 @@ def export_low_stock_report():
 
     for item in report['items']:
         row += 1
+
         ws.cell(row=row, column=1, value=item['product_name'])
         ws.cell(row=row, column=2, value=item['sku'])
         ws.cell(row=row, column=3, value=item['color'])
         ws.cell(row=row, column=4, value=item['type'])
-        ws.cell(row=row, column=5, value=item['price'])
-        ws.cell(row=row, column=6, value=item['purchase_cost'])
-        ws.cell(row=row, column=7, value=item['physical_stock'])
-        ws.cell(row=row, column=8, value=item['reserved_stock'])
-        ws.cell(row=row, column=9, value=item['available_stock'])
-        ws.cell(row=row, column=10, value=item['stock_status'])
+        ws.cell(row=row, column=5, value=item['physical_stock'])
+        ws.cell(row=row, column=6, value=item['reserved_stock'])
+        ws.cell(row=row, column=7, value=item['available_stock'])
+        ws.cell(row=row, column=8, value=item['stock_status'])
+
+        for col in range(1, 9):
+            cell = ws.cell(row=row, column=col)
+            cell.border = border
+            cell.alignment = center
 
     apply_sheet_style_and_width(wb, border)
 
@@ -810,7 +822,7 @@ def export_low_stock_report():
     wb.save(output)
     output.seek(0)
 
-    filename = "low_stock_report.xlsx"
+    filename = "low_stock_report_.xlsx"
 
     return send_file(
         output,

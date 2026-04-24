@@ -270,6 +270,76 @@
             font-weight: 600;
         }
 
+        .quick-report-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+        .quick-report-card {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s ease;
+            height: 100%;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .quick-report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+        }
+
+        .quick-report-icon {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quick-report-icon.sales {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .quick-report-icon.profit {
+            background: #ecfdf5;
+            color: #15803d;
+        }
+
+        .quick-report-icon.stock {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .quick-report-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .quick-report-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+
+        .quick-report-arrow {
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+
+        .quick-report-card:hover .quick-report-arrow {
+            color: #111827;
+            transform: translateX(3px);
+        }
+
         @media (max-width: 767.98px) {
             .report-stat-card .stat-value {
                 font-size: 1.3rem;
@@ -309,7 +379,9 @@
         {% if label == 'paid' %}
             <span class="badge-soft badge-payment-paid">Paid</span>
         {% else %}
-            <span class="badge-soft badge-payment-pending">{{ payment_status|replace('_', ' ')|title if payment_status else 'Pending' }}</span>
+            <span class="badge-soft badge-payment-pending">
+                {{ payment_status|replace('_', ' ')|title if payment_status else 'Pending' }}
+            </span>
         {% endif %}
     {% endmacro %}
 
@@ -318,7 +390,9 @@
         {% if method == 'cash_on_delivery' %}
             <span class="badge-soft badge-payment-cod">Cash on Delivery</span>
         {% else %}
-            <span class="badge-soft badge-payment-online">{{ payment_method|replace('_', ' ')|title if payment_method else 'Online Payment' }}</span>
+            <span class="badge-soft badge-payment-online">
+                {{ payment_method|replace('_', ' ')|title if payment_method else 'Online Payment' }}
+            </span>
         {% endif %}
     {% endmacro %}
 
@@ -345,10 +419,13 @@
                                name="report_date"
                                class="form-control bg-white border"
                                value="{{ selected_date }}">
+
                         <button type="submit" class="btn btn-dark">
                             <i class="fas fa-filter me-1"></i> Filter
                         </button>
-                        <a href="{{ url_for('report.export_sales_report', report_date=selected_date) }}" class="btn btn-success">
+
+                        <a href="{{ url_for('report.export_sales_report', report_date=selected_date) }}"
+                           class="btn btn-success">
                             <i class="fa-solid fa-file-excel me-1"></i> Export Excel
                         </a>
                     </div>
@@ -368,6 +445,7 @@
                             Track revenue, orders, payment performance, inventory alerts, and best-selling items for the selected date.
                         </p>
                     </div>
+
                     <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                         <span class="report-date">
                             <i data-feather="calendar"></i>
@@ -375,6 +453,65 @@
                         </span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Quick Reports Navigation -->
+        <div class="row mb-4">
+
+
+            <div class="col-lg-6 mb-6 mb-lg-0">
+                <a href="{{ url_for('report.profit_loss_report', from_date=selected_date, to_date=selected_date) }}"
+                   class="quick-report-link">
+                    <div class="quick-report-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="quick-report-icon profit">
+                                        <i data-feather="trending-up"></i>
+                                    </div>
+                                    <div>
+                                        <div class="quick-report-title">Profit & Loss</div>
+                                        <p class="quick-report-text">
+                                            View profit, COGS, net sales, and item profit details.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-report-arrow">
+                                    <i data-feather="arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-6">
+                <a href="{{ url_for('report.low_stock_report') }}"
+                   class="quick-report-link">
+                    <div class="quick-report-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="quick-report-icon stock">
+                                        <i data-feather="alert-triangle"></i>
+                                    </div>
+                                    <div>
+                                        <div class="quick-report-title">Low Stock</div>
+                                        <p class="quick-report-text">
+                                            Check products and variants that need restocking.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-report-arrow">
+                                    <i data-feather="arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -451,19 +588,23 @@
                 <div class="card report-card">
                     <div class="card-body p-4">
                         <h4 class="report-section-title">Revenue Summary</h4>
+
                         <div class="summary-list">
                             <div class="summary-item">
                                 <span class="summary-label">Gross Sales</span>
                                 <span class="summary-value">${{ '%.2f'|format(report.gross_sales or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Discount</span>
                                 <span class="summary-value text-danger">-${{ '%.2f'|format(report.total_discount or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Shipping Fee</span>
                                 <span class="summary-value">${{ '%.2f'|format(report.total_shipping or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Net Sales</span>
                                 <span class="summary-value text-success">${{ '%.2f'|format(report.net_sales or 0) }}</span>
@@ -477,19 +618,23 @@
                 <div class="card report-card">
                     <div class="card-body p-4">
                         <h4 class="report-section-title">Payment Summary</h4>
+
                         <div class="summary-list">
                             <div class="summary-item">
                                 <span class="summary-label">Cash on Delivery</span>
                                 <span class="summary-value">${{ '%.2f'|format(report.cod_sales or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Online Payment</span>
                                 <span class="summary-value">${{ '%.2f'|format(report.online_sales or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Paid Orders</span>
                                 <span class="summary-value text-success">{{ report.paid_orders or 0 }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Pending Payment</span>
                                 <span class="summary-value text-warning">{{ report.pending_payment_orders or 0 }}</span>
@@ -503,15 +648,18 @@
                 <div class="card report-card">
                     <div class="card-body p-4">
                         <h4 class="report-section-title">Estimated Profit</h4>
+
                         <div class="summary-list">
                             <div class="summary-item">
                                 <span class="summary-label">Estimated Profit</span>
                                 <span class="summary-value text-primary">${{ '%.2f'|format(report.estimated_profit or 0) }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Sold Units</span>
                                 <span class="summary-value">{{ report.sold_units or 0 }}</span>
                             </div>
+
                             <div class="summary-item">
                                 <span class="summary-label">Report Date</span>
                                 <span class="summary-value">{{ selected_date }}</span>
@@ -528,6 +676,7 @@
                 <div class="card report-card">
                     <div class="card-body p-4">
                         <h4 class="report-section-title">Order Status Summary</h4>
+
                         <div class="table-responsive">
                             <table class="table modern-table align-middle">
                                 <thead>
@@ -536,27 +685,33 @@
                                     <th class="text-center">Count</th>
                                 </tr>
                                 </thead>
+
                                 <tbody>
                                 <tr>
                                     <td>{{ order_status_badge('Pending') }}</td>
                                     <td class="text-center fw-bold">{{ report.pending_orders or 0 }}</td>
                                 </tr>
+
                                 <tr>
                                     <td>{{ order_status_badge('Confirmed') }}</td>
                                     <td class="text-center fw-bold">{{ report.confirmed_orders or 0 }}</td>
                                 </tr>
+
                                 <tr>
                                     <td>{{ order_status_badge('Shipped') }}</td>
                                     <td class="text-center fw-bold">{{ report.shipped_orders or 0 }}</td>
                                 </tr>
+
                                 <tr>
                                     <td>{{ order_status_badge('Delivered') }}</td>
                                     <td class="text-center fw-bold">{{ report.delivered_orders or 0 }}</td>
                                 </tr>
+
                                 <tr>
                                     <td>{{ order_status_badge('Canceled') }}</td>
                                     <td class="text-center fw-bold">{{ report.canceled_orders or 0 }}</td>
                                 </tr>
+
                                 <tr>
                                     <td>{{ order_status_badge('Returned') }}</td>
                                     <td class="text-center fw-bold">{{ report.returned_orders or 0 }}</td>
@@ -571,7 +726,15 @@
             <div class="col-lg-4 mb-4">
                 <div class="card report-card">
                     <div class="card-body p-4">
-                        <h4 class="report-section-title">Low Stock Alert</h4>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                            <h4 class="report-section-title mb-0">Low Stock Alert</h4>
+
+                            <a href="{{ url_for('report.low_stock_report') }}"
+                               class="btn btn-sm btn-outline-dark rounded-pill">
+                                View All
+                            </a>
+                        </div>
+
                         {% if report.low_stock %}
                             <div>
                                 {% for item in report.low_stock %}
@@ -579,6 +742,7 @@
                                         <div class="stock-icon">
                                             <i data-feather="alert-triangle"></i>
                                         </div>
+
                                         <div class="flex-grow-1">
                                             <div class="stock-title">{{ item.product_name }}</div>
                                             <div class="stock-subtitle">{{ item.color }} / {{ item.type }}</div>
@@ -606,6 +770,7 @@
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                             <h4 class="report-section-title mb-0">Top Selling Products</h4>
                         </div>
+
                         <div class="table-responsive">
                             <table class="table modern-table align-middle">
                                 <thead>
@@ -615,6 +780,7 @@
                                     <th class="text-end">Sales</th>
                                 </tr>
                                 </thead>
+
                                 <tbody>
                                 {% for item in report.top_products %}
                                     <tr>
@@ -643,6 +809,7 @@
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                             <h4 class="report-section-title mb-0">Top Selling Variants</h4>
                         </div>
+
                         <div class="table-responsive">
                             <table class="table modern-table align-middle">
                                 <thead>
@@ -653,6 +820,7 @@
                                     <th class="text-end">Sales</th>
                                 </tr>
                                 </thead>
+
                                 <tbody>
                                 {% for item in report.top_variants %}
                                     <tr>
@@ -682,6 +850,7 @@
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                             <h4 class="report-section-title mb-0">Recent Orders</h4>
                         </div>
+
                         <div class="table-responsive">
                             <table class="table modern-table align-middle">
                                 <thead>
@@ -694,6 +863,7 @@
                                     <th class="text-end">Total</th>
                                 </tr>
                                 </thead>
+
                                 <tbody>
                                 {% for order in report.recent_orders %}
                                     <tr>
@@ -746,7 +916,8 @@
     </script>
 
     <footer class="footer text-center text-muted">
-        All Rights Reserved by Freedash. Designed and Developed by <a href="https://adminmart.com/" target="_blank">Angkorkey</a>.
+        All Rights Reserved by Freedash. Designed and Developed by
+        <a href="https://adminmart.com/" target="_blank">Angkorkey</a>.
     </footer>
 
 {% endblock %}

@@ -109,24 +109,60 @@
             <div class="col-md-6">
                 <div class="card shadow-sm border-light-black h-100">
                     <div class="card-header bg-white border-bottom py-3">
-                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user me-2 text-danger"></i>ព័ត៌មានអតិថិជន
-                            (Customer Info)</h5>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-user me-2 text-danger"></i>
+                            ព័ត៌មានអតិថិជន (Customer Info)
+                        </h5>
                     </div>
+
                     <div class="card-body">
                         <div class="info-label">Phone Number</div>
                         <div class="info-value">{{ order.phone }}</div>
 
-                        <div class="info-label">City/Province</div>
-                        <div class="info-value">{{ order.city }}</div>
+{#                        <div class="info-label">City/Province</div>#}
+{#                        <div class="info-value">{{ order.city }}</div>#}
 
                         <div class="info-label">Delivery Address</div>
                         <div class="info-value">{{ order.address }}</div>
 
+                        {% if order.full_address %}
+                            <div class="info-label">Full Address</div>
+                            <div class="info-value">{{ order.full_address }}</div>
+                        {% endif %}
+
+                        <div class="info-label">Map Location</div>
+
+                        {% if order.latitude is not none and order.longitude is not none %}
+                            <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-outline-danger fw-bold px-4 mt-1">
+                                <i class="fa-solid fa-map-location-dot me-2"></i>
+                                View in Google Map
+                            </a>
+
+                            <div class="text-muted small mt-2">
+                                Lat: {{ order.latitude }}, Lng: {{ order.longitude }}
+                            </div>
+
+                        {% elif order.full_address or order.address %}
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ (order.full_address or (order.address ~ ', ' ~ order.city))|urlencode }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-outline-danger fw-bold px-4 mt-1">
+                                <i class="fa-solid fa-map-location-dot me-2"></i>
+                                Search in Google Map
+                            </a>
+                        {% else %}
+                            <div class="info-value text-muted">No map location available</div>
+                        {% endif %}
+
                         {% if order.customer_id %}
                             <div class="info-label mt-3 border-top pt-2">Registered Account ID</div>
-                            <a href="{{ url_for('customer.admin_customer_edit',customer_id = order.customer_id) }}">
-                                <div class="info-value text-primary">Customer
-                                    #{{ order.customer_id }} {{ order.customer.name }}</div>
+                            <a href="{{ url_for('customer.admin_customer_edit', customer_id=order.customer_id) }}">
+                                <div class="info-value text-primary">
+                                    Customer #{{ order.customer_id }} {{ order.customer.name }}
+                                </div>
                             </a>
                         {% else %}
                             <div class="info-label mt-3 border-top pt-2">Account Status</div>
@@ -193,6 +229,7 @@
                 </table>
             </div>
         </div>
+
 
         <div class="row justify-content-end">
             <div class="col-md-5">

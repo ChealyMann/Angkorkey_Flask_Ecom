@@ -136,8 +136,8 @@ def order():
         city = 'Unknown'
         full_address = f'Coordinates: {lat:.5f}, {lng:.5f}'
 
-    # COD = pending, online payment = paid
-    payment_status = 'pending' if payment_method == 'cash_on_delivery' else 'paid'
+    # All orders start as pending; bakong is confirmed paid via webhook/polling
+    payment_status = 'pending'
 
     new_order = Order(
         customer_id=customer_id,
@@ -192,6 +192,10 @@ def order():
         db.session.rollback()
         flash('Something went wrong placing your order. Please try again.', 'danger')
         raise e
+
+    if payment_method == 'bakong_khqr':
+        return redirect(
+            url_for('payment.payment', amount=items['summary']['total'], currency='USD', bill_number=bill_number))
 
     flash(f'Order #{new_order.invoice_no} placed successfully! 🎉', 'success')
     return redirect(url_for('home.home'))
@@ -362,6 +366,3 @@ def update_status():
         flash('Something went wrong updating the order. Please try again.', 'danger')
 
     return redirect(url_for('order.order_detail', order_id=order.id))
-
-
-

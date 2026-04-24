@@ -38,7 +38,7 @@ def save_image(
     base = Image.open(original_path)
     logo = Image.open("static/images/logo.png").convert("RGBA")
 
-    opacity = 0.1
+    opacity = 0
 
     alpha = logo.split()[3]
     alpha = ImageEnhance.Brightness(alpha).enhance(opacity)

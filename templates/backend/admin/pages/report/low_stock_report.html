@@ -286,8 +286,8 @@
                         <th>Product</th>
                         <th>SKU</th>
                         <th>Variant</th>
-                        <th class="text-end">Selling Price</th>
-                        <th class="text-end">Purchase Cost</th>
+{#                        <th class="text-end">Selling Price</th>#}
+{#                        <th class="text-end">Purchase Cost</th>#}
                         <th class="text-center">Physical</th>
                         <th class="text-center">Reserved</th>
                         <th class="text-center">Available</th>
@@ -303,8 +303,8 @@
                             </td>
                             <td>{{ item.sku }}</td>
                             <td>{{ item.color }} / {{ item.type }}</td>
-                            <td class="text-end fw-bold">${{ '%.2f'|format(item.price or 0) }}</td>
-                            <td class="text-end">${{ '%.2f'|format(item.purchase_cost or 0) }}</td>
+{#                            <td class="text-end fw-bold">${{ '%.2f'|format(item.price or 0) }}</td>#}
+{#                            <td class="text-end">${{ '%.2f'|format(item.purchase_cost or 0) }}</td>#}
                             <td class="text-center">
                                 <span class="stock-pill pill-physical">{{ item.physical_stock }}</span>
                             </td>

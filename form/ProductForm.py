@@ -1,7 +1,7 @@
 from flask_wtf.file import FileRequired, FileAllowed, FileField, MultipleFileField
 from wtforms import Form, validators, SelectField, FloatField, IntegerField
 from wtforms.fields.simple import StringField, SubmitField, TextAreaField, BooleanField
-from wtforms.validators import DataRequired, Length, NumberRange
+from wtforms.validators import DataRequired, Length, NumberRange, Optional
 from wtforms_sqlalchemy.fields import QuerySelectField
 from flask_wtf import  FlaskForm
 
@@ -17,7 +17,14 @@ class ProductForm(FlaskForm):
     category = QuerySelectField('category', query_factory=lambda: Category.query.all(), get_label='name', default=lambda: Category.query.first())
     desc = TextAreaField('desc')
     price = FloatField('price', validators=[NumberRange(min=0)])
-    old_price = FloatField('old_price', validators=[NumberRange(min=0)])
+    old_price = FloatField(
+        'old_price',
+        validators=[
+            Optional(),
+            NumberRange(min=0, message='Old price must be 0 or more')
+        ],
+        default=None
+    )
     cost = FloatField('cost', validators=[NumberRange(min=0)])
 
     # NEW

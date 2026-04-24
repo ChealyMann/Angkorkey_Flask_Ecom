@@ -141,40 +141,53 @@ def home():
     products = Product.query.options(subqueryload(Product.variants)).limit(4).all()
     products = add_price_range(products)
 
-    promotions = Promotion.query.filter_by(is_active=True).all()
+    # promotions = Promotion.query.filter_by(is_active=True).all()
     categories = Category.query.limit(4).all()
 
     return render_template(
         "frontend/pages/index.html",
         products=products,
-        promotions=promotions,
+        # promotions=promotions,
         categories=categories
     )
 
 
 @home_bp.route("/product_detail/<int:product_id>")
 def product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.options(
+        subqueryload(Product.variants)
+    ).get_or_404(product_id)
+
     product_variant = getProductDetail(product_id)
-    # assert False , product_variant
 
-
-    # Fetch related products (Same Category, exclude current)
-    related_products = Product.query.filter(
+    related_products = Product.query.options(
+        subqueryload(Product.variants)
+    ).filter(
         Product.category_id == product.category_id,
         Product.id != product.id
     ).limit(4).all()
 
-    related_products = add_price_range(related_products)
-
-    # Fallback: If less than 4 related, fill with random/latest products
     if len(related_products) < 4:
         needed = 4 - len(related_products)
         excluded_ids = [p.id for p in related_products] + [product.id]
-        more_products = Product.query.filter(Product.id.notin_(excluded_ids)).limit(needed).all()
+
+        more_products = Product.query.options(
+            subqueryload(Product.variants)
+        ).filter(
+            Product.id.notin_(excluded_ids)
+        ).limit(needed).all()
+
         related_products.extend(more_products)
 
-    return render_template("frontend/pages/product-detail.html", product=product, related_products=related_products,product_variant=product_variant)
+    # IMPORTANT: do this AFTER all related products are added
+    related_products = add_price_range(related_products)
+
+    return render_template(
+        "frontend/pages/product-detail.html",
+        product=product,
+        related_products=related_products,
+        product_variant=product_variant
+    )
 
 
 # Protect Cart Route
