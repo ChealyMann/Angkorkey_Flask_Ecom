@@ -150,12 +150,12 @@
                             <th class="py-3 akk-header" style="width: 190px;">
                                 <i class="fa-solid fa-list me-1 text-danger"></i>Category
                             </th>
-                            <th class="text-center py-3 akk-header" style="width: 120px;">
-                                <i class="fa-solid fa-dollar-sign me-1 text-danger"></i>Price
-                            </th>
-                            <th class="text-center py-3 akk-header" style="width: 120px;">
-                                <i class="fa-solid fa-tags me-1 text-danger"></i>Cost
-                            </th>
+{#                            <th class="text-center py-3 akk-header" style="width: 120px;">#}
+{#                                <i class="fa-solid fa-dollar-sign me-1 text-danger"></i>Price#}
+{#                            </th>#}
+{#                            <th class="text-center py-3 akk-header" style="width: 120px;">#}
+{#                                <i class="fa-solid fa-tags me-1 text-danger"></i>Cost#}
+{#                            </th>#}
                             <th class="text-center py-3 akk-header" style="width: 120px;">
                                 <i class="fa-solid fa-circle-info me-1 text-danger"></i>Status
                             </th>
@@ -192,12 +192,12 @@
                                     {{ product['category_name'] }}
                                 </td>
 
-                                <td class="text-center fw-bold text-danger">
-                                    ${{ product['price'] }}
-                                </td>
-                                <td class="text-center fw-semibold">
-                                    ${{ product['cost'] }}
-                                </td>
+    {#                                <td class="text-center fw-bold text-danger">#}
+    {#                                    ${{ product['price'] }}#}
+    {#                                </td>#}
+    {#                                <td class="text-center fw-semibold">#}
+    {#                                    ${{ product['cost'] }}#}
+    {#                                </td>#}
 
                                 <td class="text-center">
                                     {% if product['status'] == 'false' %}

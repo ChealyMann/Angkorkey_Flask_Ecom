@@ -17,10 +17,10 @@
                         <a href="{{ url_for("home.products") }}"
                             class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.products' and not request.view_args.get('category_id') else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Products</a>
                     </li>
-                    <li>
-                        <a href="{{ url_for("home.promotions") }}"
-                            class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.promotions' else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Promotions</a>
-                    </li>
+{#                    <li>#}
+{#                        <a href="{{ url_for("home.promotions") }}"#}
+{#                            class="px-5 py-2.5 rounded-full {{ 'text-white bg-white/10' if request.endpoint == 'home.promotions' else 'text-gray-400 hover:text-white hover:bg-white/10' }} smooth-transition">Promotions</a>#}
+{#                    </li>#}
 
                     <!-- Categories Dropdown (Text Only) -->
                     <li class="relative dropdown group">
@@ -51,17 +51,21 @@
             <!-- --- Header Action Buttons (Search, Cart, Mobile Menu) --- -->
             <div class="flex items-center gap-3">
 
-                <!-- Cart Button (Desktop Only) - Kept as is for Desktop -->
-                 <a href="{{ url_for("home.cart") }}"
+                <!-- Cart Button (Desktop Only) -->
                 <a href="{{ url_for('cart_bp.view_cart') }}">
-                    <button
-                    class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    <span class="absolute top-1 right-1 h-2 w-2 bg-white rounded-full"></span>
-                </button>
+                    <button class="hidden md:flex items-center justify-center p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <!-- Dynamic cart badge — hidden when empty -->
+                        <span id="cart-badge"
+                              class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1
+                                     bg-white text-black text-[10px] font-bold rounded-full
+                                     items-center justify-center leading-none">
+                            0
+                        </span>
+                    </button>
                 </a>
 
                 <!-- Account Button (Desktop Only) -->
@@ -69,7 +73,6 @@
                     <!-- Account Button when logged in -->
                     <a href="{{ url_for('home.customer_profile') }}"
                        class="hidden sm:flex items-center justify-center p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition">
-
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M5.121 17.804A9 9 0 1118.879 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -87,19 +90,17 @@
                     </a>
                 {% endif %}
 
-                 <!-- Logout Button -->
+                <!-- Logout Button -->
                 {% if session.get('customer_id') %}
                 <form id="logoutForm" action="{{ url_for('home.customer_logout') }}" method="POST">
                     <button
                         type="button"
                         onclick="confirmLogout()"
-                        class="hidden md:block p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
-
+                        class="hidden md:flex items-center justify-center p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full smooth-transition relative">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 16l4-4m0 0l-4-4m4 4H7" />
                         </svg>
-
                     </button>
                 </form>
                 {% endif %}
@@ -119,7 +120,7 @@
     </div>
 </header>
 
-{#Alert Popup for logout#}
+{# Alert Popup for logout #}
 <script>
 function confirmLogout() {
     Swal.fire({

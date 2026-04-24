@@ -182,35 +182,35 @@
                     <div class="col-lg-6">
 
                         <!-- --- Price and Cost Fields (Two Columns) --- -->
-                        <div class="row g-2 mb-4">
-                            <div class="col-4">
-                                <div class="form-floating">
-                                    {{ form.price(class="form-control akk-input rounded", id="floatingInputPrice", placeholder="0") }}
-                                    <label for="floatingInputPrice" class="text-muted">តម្លៃលក់ ($ Price)</label>
-                                    {% if form.price.errors %}
-                                        <span class="text-danger small">{{ form.price.errors[0] }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-floating">
-                                    {{ form.old_price(class="form-control akk-input rounded", id="floatingInputOldPrice", placeholder="0") }}
-                                    <label for="floatingInputOldPrice" class="text-muted">តម្លៃដើម ($ Old)</label>
-                                    {% if form.old_price.errors %}
-                                        <span class="text-danger small">{{ form.old_price.errors[0] }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-floating">
-                                    {{ form.cost(class="form-control akk-input rounded", id="floatingInputCost", placeholder="0") }}
-                                    <label for="floatingInputCost" class="text-muted">តម្លៃទុន ($ Cost)</label>
-                                    {% if form.cost.errors %}
-                                        <span class="text-danger small">{{ form.cost.errors[0] }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+{#                        <div class="row g-2 mb-4">#}
+{#                            <div class="col-4">#}
+{#                                <div class="form-floating">#}
+{#                                    {{ form.price(class="form-control akk-input rounded", id="floatingInputPrice", placeholder="0") }}#}
+{#                                    <label for="floatingInputPrice" class="text-muted">តម្លៃលក់ ($ Price)</label>#}
+{#                                    {% if form.price.errors %}#}
+{#                                        <span class="text-danger small">{{ form.price.errors[0] }}</span>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            <div class="col-4">#}
+{#                                <div class="form-floating">#}
+{#                                    {{ form.old_price(class="form-control akk-input rounded", id="floatingInputOldPrice", placeholder="0") }}#}
+{#                                    <label for="floatingInputOldPrice" class="text-muted">តម្លៃដើម ($ Old)</label>#}
+{#                                    {% if form.old_price.errors %}#}
+{#                                        <span class="text-danger small">{{ form.old_price.errors[0] }}</span>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            <div class="col-4">#}
+{#                                <div class="form-floating">#}
+{#                                    {{ form.cost(class="form-control akk-input rounded", id="floatingInputCost", placeholder="0") }}#}
+{#                                    <label for="floatingInputCost" class="text-muted">តម្លៃទុន ($ Cost)</label>#}
+{#                                    {% if form.cost.errors %}#}
+{#                                        <span class="text-danger small">{{ form.cost.errors[0] }}</span>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
 
                         <!-- --- Description Textarea (Summernote) --- -->
                         <div class="mb-4">

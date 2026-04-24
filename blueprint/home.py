@@ -1,47 +1,193 @@
 import re
 from flask import Blueprint, render_template, request, flash, url_for, session
+from sqlalchemy.orm import subqueryload
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Category, Product, Promotion,Customer
+from models import Category, Product, Promotion, Customer, OrderItem, Cart
 
 from models import Category, Product, Promotion, Customer, ProductVariant
 from extensions import db
 from blueprint.auth import login_required
 from models.Product import getProductDetail
 from functions.functions import generate_secure_invoice
+from models import Category, Product, Promotion, Customer, ProductVariant, Order
+
 
 home_bp = Blueprint("home", __name__)
 
+def add_price_range(products):
+    for product in products:
+        prices = []
+
+        if getattr(product, "variants", None):
+            for variant in product.variants:
+                if variant.discount_price and variant.discount_price != 0.0:
+                    price = float(variant.discount_price)
+                elif variant.price is not None:
+                    price = float(variant.price)
+                else:
+                    continue
+                prices.append(price)
+
+        if prices:
+            product.min_price = min(prices)
+            product.max_price = max(prices)
+            product.has_price_range = product.min_price != product.max_price
+        else:
+            base_price = float(product.price or 0)
+            product.min_price = base_price
+            product.max_price = base_price
+            product.has_price_range = False
+
+    return products
+
+
+def get_payment_status_meta(payment_status):
+    payment_status = (payment_status or "").lower()
+
+    if payment_status == "paid":
+        return {
+            "label": "Paid",
+            "color": "bg-green-500/15 text-green-300 border-green-500/20"
+        }
+
+    elif payment_status in ["failed", "cancelled", "canceled"]:
+        return {
+            "label": payment_status.capitalize(),
+            "color": "bg-red-500/15 text-red-300 border-red-500/20"
+        }
+
+    return {
+        "label": "Pending",
+        "color": "bg-yellow-500/15 text-yellow-300 border-yellow-500/20"
+    }
+
+
+def get_order_status_meta(status_code):
+    status_map = {
+        1: {
+            "label": "Pending",
+            "step": 1,
+            "description": "Your order has been placed and is waiting for confirmation.",
+            "color": "bg-yellow-500/15 text-yellow-300 border-yellow-500/20"
+        },
+        2: {
+            "label": "Confirmed",
+            "step": 2,
+            "description": "Your order has been confirmed and will be prepared for shipment.",
+            "color": "bg-blue-500/15 text-blue-300 border-blue-500/20"
+        },
+        3: {
+            "label": "Shipped",
+            "step": 3,
+            "description": "Your order has been shipped and is on the way.",
+            "color": "bg-purple-500/15 text-purple-300 border-purple-500/20"
+        },
+        4: {
+            "label": "Delivered",
+            "step": 4,
+            "description": "Your order has been delivered successfully.",
+            "color": "bg-green-500/15 text-green-300 border-green-500/20"
+        },
+        5: {
+            "label": "Canceled",
+            "step": 0,
+            "description": "This order was canceled.",
+            "color": "bg-red-500/15 text-red-300 border-red-500/20"
+        },
+        6: {
+            "label": "Returned",
+            "step": 0,
+            "description": "This order was returned.",
+            "color": "bg-orange-500/15 text-orange-300 border-orange-500/20"
+        }
+    }
+
+    return status_map.get(status_code, {
+        "label": "Unknown",
+        "step": 0,
+        "description": "Order status unavailable.",
+        "color": "bg-gray-500/15 text-gray-300 border-gray-500/20"
+    })
+
+
+def enrich_order_for_tracking(order):
+    order.status_meta = get_order_status_meta(order.status)
+    order.payment_meta = get_payment_status_meta(order.payment_status)
+
+    tracking_steps = [
+        {"key": 1, "label": "Pending"},
+        {"key": 2, "label": "Confirmed"},
+        {"key": 3, "label": "Shipped"},
+        {"key": 4, "label": "Delivered"},
+    ]
+
+    current_step = order.status_meta["step"]
+
+    for step in tracking_steps:
+        if order.status in [5, 6]:
+            step["done"] = False
+            step["active"] = False
+        else:
+            step["done"] = step["key"] < current_step
+            step["active"] = step["key"] == current_step
+
+    order.tracking_steps = tracking_steps
+    order.item_count = sum(item.qty for item in order.items) if order.items else 0
+    return order
 
 @home_bp.route("/")
 @home_bp.route("/home")
 def home():
-    products = Product.query.limit(4).all()
-    promotions = Promotion.query.filter_by(is_active=True).all()
+    products = Product.query.options(subqueryload(Product.variants)).limit(4).all()
+    products = add_price_range(products)
 
+    # promotions = Promotion.query.filter_by(is_active=True).all()
     categories = Category.query.limit(4).all()
-    return render_template("frontend/pages/index.html", products=products, promotions=promotions, categories=categories)
+
+    return render_template(
+        "frontend/pages/index.html",
+        products=products,
+        # promotions=promotions,
+        categories=categories
+    )
 
 
 @home_bp.route("/product_detail/<int:product_id>")
 def product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.options(
+        subqueryload(Product.variants)
+    ).get_or_404(product_id)
+
     product_variant = getProductDetail(product_id)
 
-
-    # Fetch related products (Same Category, exclude current)
-    related_products = Product.query.filter(
+    related_products = Product.query.options(
+        subqueryload(Product.variants)
+    ).filter(
         Product.category_id == product.category_id,
         Product.id != product.id
     ).limit(4).all()
 
-    # Fallback: If less than 4 related, fill with random/latest products
     if len(related_products) < 4:
         needed = 4 - len(related_products)
         excluded_ids = [p.id for p in related_products] + [product.id]
-        more_products = Product.query.filter(Product.id.notin_(excluded_ids)).limit(needed).all()
+
+        more_products = Product.query.options(
+            subqueryload(Product.variants)
+        ).filter(
+            Product.id.notin_(excluded_ids)
+        ).limit(needed).all()
+
         related_products.extend(more_products)
 
-    return render_template("frontend/pages/product-detail.html", product=product, related_products=related_products,product_variant=product_variant)
+    # IMPORTANT: do this AFTER all related products are added
+    related_products = add_price_range(related_products)
+
+    return render_template(
+        "frontend/pages/product-detail.html",
+        product=product,
+        related_products=related_products,
+        product_variant=product_variant
+    )
 
 
 # Protect Cart Route
@@ -62,17 +208,15 @@ def all_categories():
 @home_bp.route("/products")
 @home_bp.route("/category/<int:category_id>")
 def products(category_id=None):
-    # 1. Capture Filters
     search_query = request.args.get("search", "").strip()
-    # Prioritize path parameter, then query parameter
+
     if category_id is None:
         category_id = request.args.get("category_id", type=int)
+
     is_ajax = request.args.get("ajax", type=int)
     page = request.args.get("page", 1, type=int)
-    per_page = 8  # Show 8 products per page
+    per_page = 8
 
-    # 2. Build Query
-    # Optimize: Select only necessary columns
     query = Product.query.options(
         db.load_only(
             Product.id,
@@ -80,8 +224,10 @@ def products(category_id=None):
             Product.price,
             Product.old_price,
             Product.image,
-            Product.category_id
-        )
+            Product.category_id,
+            Product.status,
+        ),
+        subqueryload(Product.variants)
     )
 
     if category_id:
@@ -90,12 +236,9 @@ def products(category_id=None):
     if search_query:
         query = query.filter(Product.name.ilike(f"%{search_query}%"))
 
-    # 3. Execute Pagination
-    # error_out=False effectively handles out of range pages
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    products_list = pagination.items
+    products_list = add_price_range(pagination.items)
 
-    # 4. AJAX RESPONSE: Return JSON with grid and pagination HTML
     if is_ajax:
         from flask import jsonify
         return jsonify({
@@ -110,7 +253,6 @@ def products(category_id=None):
             'has_next': pagination.has_next
         })
 
-    # 5. STANDARD RESPONSE: Return full page
     categories = Category.query.all()
     return render_template(
         "frontend/pages/products.html",
@@ -308,3 +450,70 @@ def customer_logout():
     session.pop('customer_id', None)
     return redirect(url_for('home.home'))
 
+@home_bp.route('/customer/orders')
+def customer_orders():
+    from flask import redirect
+
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        flash("Please log in to view your orders.", "error")
+        return redirect(url_for('home.customer_login', next=url_for('home.customer_orders')))
+
+    customer = Customer.query.get_or_404(customer_id)
+
+    orders = (
+        Order.query
+        .options(
+            subqueryload(Order.items)
+            .joinedload(OrderItem.product)
+            .subqueryload(Product.images),
+
+            subqueryload(Order.items)
+            .joinedload(OrderItem.variants)
+            .subqueryload(ProductVariant.images)
+        )
+        .filter_by(customer_id=customer_id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+
+    orders = [enrich_order_for_tracking(order) for order in orders]
+
+    # assert False , orders[0].items[0].variants.images[0].image
+
+    return render_template(
+        'frontend/pages/customer_orders.html',
+        customer=customer,
+        orders=orders
+    )
+
+@home_bp.route('/customer/orders/<int:order_id>')
+def customer_order_detail(order_id):
+    from flask import redirect
+
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        flash("Please log in to view your order.", "error")
+        return redirect(url_for('home.customer_login', next=url_for('home.customer_order_detail', order_id=order_id)))
+
+    order = (
+        Order.query
+        .options(
+            subqueryload(Order.items)
+            .joinedload(OrderItem.product)
+            .subqueryload(Product.images),
+
+            subqueryload(Order.items)
+            .joinedload(OrderItem.variants)
+            .subqueryload(ProductVariant.images)
+        )
+        .filter_by(id=order_id, customer_id=customer_id)
+        .first_or_404()
+    )
+
+    order = enrich_order_for_tracking(order)
+
+    return render_template(
+        'frontend/pages/customer_order_detail.html',
+        order=order
+    )

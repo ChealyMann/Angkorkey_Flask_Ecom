@@ -8,4 +8,4 @@ def _admin():
 
 @admin_bp.route('/admin/dashboard')
 def admin():
-    return render_template('backend/admin/index.html')
+    return redirect(url_for('report.sales_report'))

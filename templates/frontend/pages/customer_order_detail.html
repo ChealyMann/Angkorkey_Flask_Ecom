@@ -1,0 +1,202 @@
+{% extends("frontend/main.html") %}
+
+{% block content %}
+<main class="px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto">
+
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">
+                Order #{{ order.invoice_no or order.id }}
+            </h1>
+            <p class="text-gray-400 text-sm mt-1">
+                Placed on {{ order.created_at.strftime('%d %b %Y, %I:%M %p') if order.created_at else '-' }}
+            </p>
+        </div>
+
+        <a href="{{ url_for('home.customer_orders') }}"
+           class="inline-flex items-center justify-center border border-white/10 text-white text-sm px-4 py-2 rounded-xl hover:border-white/20 transition">
+            Back to Orders
+        </a>
+    </div>
+
+    <div class="grid xl:grid-cols-3 gap-6">
+
+        <div class="xl:col-span-2 space-y-6">
+
+            <div class="bg-[#121214] border border-white/5 rounded-3xl p-6">
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full text-xs border {{ order.status_meta.color }}">
+                        {{ order.status_meta.label }}
+                    </span>
+
+                    <span class="px-3 py-1 rounded-full text-xs border {{ order.payment_meta.color }}">
+                        Payment: {{ order.payment_meta.label }}
+                    </span>
+                </div>
+
+                <p class="text-gray-400 text-sm mb-6">{{ order.status_meta.description }}</p>
+
+                {% if order.status == 5 %}
+                    <div class="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-red-300 text-sm">
+                        This order has been canceled.
+                    </div>
+                {% elif order.status == 6 %}
+                    <div class="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-4 text-orange-300 text-sm">
+                        This order has been returned.
+                    </div>
+                {% else %}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {% for step in order.tracking_steps %}
+                            <div class="rounded-2xl border px-3 py-4 text-center
+                                {% if step.active %}
+                                    border-white/20 bg-white/10
+                                {% elif step.done %}
+                                    border-green-500/20 bg-green-500/10
+                                {% else %}
+                                    border-white/5 bg-[#09090b]
+                                {% endif %}">
+                                <div class="text-xs uppercase tracking-wide
+                                    {% if step.active %}
+                                        text-white
+                                    {% elif step.done %}
+                                        text-green-300
+                                    {% else %}
+                                        text-gray-500
+                                    {% endif %}">
+                                    Step {{ loop.index }}
+                                </div>
+                                <div class="text-sm mt-1
+                                    {% if step.active %}
+                                        text-white font-semibold
+                                    {% elif step.done %}
+                                        text-green-300
+                                    {% else %}
+                                        text-gray-400
+                                    {% endif %}">
+                                    {{ step.label }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="bg-[#121214] border border-white/5 rounded-3xl p-6">
+                <h2 class="text-white font-semibold text-lg mb-5">Order Items</h2>
+
+                <div class="space-y-4">
+                    {% for item in order.items %}
+                        <div class="bg-[#09090b] border border-white/5 rounded-2xl p-4 sm:p-5">
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <div class="w-full sm:w-28 h-28 rounded-2xl bg-white/5 overflow-hidden flex items-center justify-center shrink-0">
+                                    {% if item.display_image %}
+                                        <img src="{{ url_for('static', filename='images/' ~ item.display_image) }}"
+                                             alt="{{ item.display_name }}"
+                                             class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-gray-500 text-xs">No Image</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <h3 class="text-white font-semibold text-base truncate">
+                                                {{ item.display_name }}
+                                            </h3>
+
+                                            {% if item.variant_label %}
+                                                <p class="text-gray-400 text-sm mt-1">
+                                                    {{ item.variant_label }}
+                                                </p>
+                                            {% endif %}
+
+                                            <div class="flex flex-wrap gap-4 text-sm text-gray-500 mt-3">
+                                                <span>Qty: {{ item.qty }}</span>
+                                                <span>Unit Price: ${{ '%.2f'|format(item.unit_price or 0) }}</span>
+                                                {% if item.unit_discount %}
+                                                    <span>Discount: ${{ '%.2f'|format(item.unit_discount or 0) }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="text-left md:text-right">
+                                            <p class="text-gray-500 text-sm">Subtotal</p>
+                                            <p class="text-white text-lg font-bold">
+                                                ${{ '%.2f'|format(item.sub_total or 0) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="space-y-6">
+
+            <div class="bg-[#121214] border border-white/5 rounded-3xl p-6">
+                <h2 class="text-white font-semibold text-lg mb-4">Shipping Information</h2>
+
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <p class="text-gray-500 mb-1">Phone</p>
+                        <p class="text-white">{{ order.phone }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 mb-1">Address</p>
+                        <p class="text-white">{{ order.address }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 mb-1">City</p>
+                        <p class="text-white">{{ order.city }}</p>
+                    </div>
+                    {% if order.full_address %}
+                        <div>
+                            <p class="text-gray-500 mb-1">Full Address</p>
+                            <p class="text-white">{{ order.full_address }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-[#121214] border border-white/5 rounded-3xl p-6">
+                <h2 class="text-white font-semibold text-lg mb-4">Payment Summary</h2>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span class="text-white">${{ '%.2f'|format(order.sub_total or 0) }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Discount</span>
+                        <span class="text-white">-${{ '%.2f'|format(order.discount or 0) }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Shipping Fee</span>
+                        <span class="text-white">${{ '%.2f'|format(order.shipping_fee or 0) }}</span>
+                    </div>
+
+                    <div class="border-t border-white/5 pt-3 flex items-center justify-between">
+                        <span class="text-white font-semibold">Grand Total</span>
+                        <span class="text-white text-lg font-bold">${{ '%.2f'|format(order.grand_total or 0) }}</span>
+                    </div>
+
+                    <div class="pt-3">
+                        <p class="text-gray-500 mb-1">Payment Method</p>
+                        <p class="text-white">{{ order.payment_method }}</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+{% endblock %}

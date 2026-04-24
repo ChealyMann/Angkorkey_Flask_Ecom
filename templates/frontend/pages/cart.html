@@ -41,7 +41,7 @@
 
                                     <!-- Delete button -->
                                     <button @click="remove_from_cart(item.id)"
-                                            :disabled="isLoading"
+                                            :disabled="loadingId === item.id"
                                             class="text-gray-500 hover:text-red-400 transition p-1 -mr-2 disabled:opacity-40">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -60,17 +60,18 @@
                                 <div class="flex items-center bg-black rounded-full h-9 border border-white/10 px-2">
 
                                     <!-- Decrease / remove -->
-                                    <button @click="decrease_cart(item.product_id, item.variant_id)"
-                                            :disabled="isLoading"
+                                    <button @click="decrease_cart(item.product_id, item.variant_id, item.id)"
+                                            :disabled="loadingId === item.id"
                                             class="w-8 h-full text-gray-400 hover:text-white flex items-center justify-center text-lg active:scale-90 transition focus:outline-none disabled:opacity-40">
-                                        −
+                                        <span v-if="loadingId === item.id + '_dec'">·</span>
+                                        <span v-else>−</span>
                                     </button>
 
                                     <span class="text-white text-sm font-medium w-6 text-center">[[ item.quantity ]]</span>
 
                                     <!-- Increase -->
-                                    <button @click="add_to_cart(item.product_id, item.variant_id)"
-                                            :disabled="isLoading"
+                                    <button @click="add_to_cart(item.product_id, item.variant_id, item.id)"
+                                            :disabled="loadingId === item.id"
                                             class="w-8 h-full text-gray-400 hover:text-white flex items-center justify-center text-lg active:scale-90 transition focus:outline-none disabled:opacity-40">
                                         +
                                     </button>
@@ -113,7 +114,6 @@
                             </div>
                         </div>
 
-                        <!-- ✅ Now links to the checkout page (GET) instead of placing order directly -->
                         <a href="{{ url_for('order.checkout') }}"
                            class="hidden lg:flex w-full bg-white hover:bg-gray-200 text-black h-12 rounded-xl font-bold text-sm items-center justify-center gap-2 transition transform active:scale-[0.98]">
                             Checkout Securely
@@ -134,7 +134,6 @@
                     <span class="text-xs text-gray-400 block uppercase tracking-wider">Total</span>
                     <span class="text-xl font-bold text-white">$ [[ cart_item.summary.total ]]</span>
                 </div>
-                <!-- ✅ Link to checkout page on mobile too -->
                 <a href="{{ url_for('order.checkout') }}"
                    class="bg-white text-black px-8 h-12 rounded-full font-bold text-base flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.15)] active:scale-95 transition">
                     Checkout
@@ -170,7 +169,7 @@
             data() {
                 return {
                     cart_item: {items: [], summary: {total: 0, total_quantity: 0}},
-                    isLoading: false,
+                    loadingId: null,   // tracks which item row is currently being mutated
                 }
             },
 
@@ -185,9 +184,9 @@
                     }
                 },
 
-                async add_to_cart(productId, variantId = null, quantity = 1) {
-                    if (this.isLoading) return
-                    this.isLoading = true
+                async add_to_cart(productId, variantId = null, rowId, quantity = 1) {
+                    if (this.loadingId === rowId) return
+                    this.loadingId = rowId
                     try {
                         const {data} = await axios.post(
                             '/api/cart/add',
@@ -196,16 +195,17 @@
                         )
                         if (!data.success) { this.showToast(data.message || 'Something went wrong.', 'error'); return }
                         this.cart_item = data.cart
+                        updateCartBadge()
                     } catch (err) {
                         this.showToast(err.response?.data?.message || 'Network error.', 'error')
                     } finally {
-                        this.isLoading = false
+                        this.loadingId = null
                     }
                 },
 
-                async decrease_cart(productId, variantId = null) {
-                    if (this.isLoading) return
-                    this.isLoading = true
+                async decrease_cart(productId, variantId = null, rowId) {
+                    if (this.loadingId === rowId) return
+                    this.loadingId = rowId
                     try {
                         const {data} = await axios.post(
                             '/api/cart/decrease',
@@ -214,16 +214,17 @@
                         )
                         if (!data.success) { this.showToast(data.message || 'Could not update item.', 'error'); return }
                         this.cart_item = data.cart
+                        updateCartBadge()
                     } catch (err) {
                         this.showToast(err.response?.data?.message || 'Network error.', 'error')
                     } finally {
-                        this.isLoading = false
+                        this.loadingId = null
                     }
                 },
 
                 async remove_from_cart(rowId) {
-                    if (this.isLoading) return
-                    this.isLoading = true
+                    if (this.loadingId === rowId) return
+                    this.loadingId = rowId
                     try {
                         const {data} = await axios.post(
                             '/api/cart/remove',
@@ -232,10 +233,11 @@
                         )
                         if (!data.success) { this.showToast(data.message || 'Could not remove item.', 'error'); return }
                         this.cart_item = data.cart
+                        updateCartBadge()
                     } catch (err) {
                         this.showToast(err.response?.data?.message || 'Network error.', 'error')
                     } finally {
-                        this.isLoading = false
+                        this.loadingId = null
                     }
                 },
 

@@ -5,7 +5,7 @@ from blueprint.admin.product.product import product_variants
 from extensions import db
 from models import Cart, Product, ProductVariant
 from functions.functions import login_required
-from functions.functions import _cart_payload , _customer_id
+from functions.functions import _cart_payload, _customer_id
 
 cart_bp = Blueprint('cart_bp', __name__)
 
@@ -14,8 +14,8 @@ cart_bp = Blueprint('cart_bp', __name__)
 @login_required
 def view_cart():
     customer_id = _customer_id()
-    items       = Cart.query.filter_by(customer_id=customer_id).all()
-    total          = round(sum(i.price * i.quantity for i in items), 2)
+    items = Cart.query.filter_by(customer_id=customer_id).all()
+    total = round(sum(i.price * i.quantity for i in items), 2)
     total_quantity = sum(i.quantity for i in items)
 
     return render_template(
@@ -31,9 +31,9 @@ def view_cart():
 @login_required
 def add_to_cart():
     customer_id = _customer_id()
-    product_id  = request.form.get('product_id', type=int)
-    variant_id  = request.form.get('variant_id', type=int)
-    quantity    = request.form.get('quantity', 1, type=int)
+    product_id = request.form.get('product_id', type=int)
+    variant_id = request.form.get('variant_id', type=int)
+    quantity = request.form.get('quantity', 1, type=int)
 
     if not product_id or quantity < 1:
         flash('Invalid request.', 'error')
@@ -44,17 +44,17 @@ def add_to_cart():
         flash('This product is not available.', 'error')
         return redirect(request.referrer or url_for('cart_bp.view_cart'))
 
-    price  = float(product.price)
-    color  = None
-    vtype  = None
-    image  = product.image
+    price = float(product.price)
+    color = None
+    vtype = None
+    image = product.image
 
     if product.images:
         primary = next((i for i in product.images if i.is_primary), None)
-        image   = (primary or product.images[0]).image
+        image = (primary or product.images[0]).image
 
     if variant_id:
-        variant   = ProductVariant.query.get(variant_id)
+        variant = ProductVariant.query.get(variant_id)
         if not variant or variant.product_id != product_id:
             flash('Selected option not found.', 'error')
             return redirect(request.referrer or url_for('cart_bp.view_cart'))
@@ -69,20 +69,22 @@ def add_to_cart():
         vtype = variant.type
         if variant.images:
             primary = next((i for i in variant.images if i.is_primary), None)
-            image   = (primary or variant.images[0]).image
+            image = (primary or variant.images[0]).image
 
     try:
         existing = Cart.query.filter_by(
             customer_id=customer_id,
             product_id=product_id,
             variant_id=variant_id,
+            status = 1
         ).first()
 
         if existing:
             if variant_id:
-                available = (variant.physical_stock or 0) - (variant.reserved_stock or 0)
+                available = variant.available_stock  # ← use the safe property
+                remaining = max(0, available - existing.quantity)  # ← clamp to 0
                 if existing.quantity + quantity > available:
-                    flash(f'Only {available - existing.quantity} more unit(s) available.', 'warning')
+                    flash(f'Only {remaining} more unit(s) available.', 'warning')
                     return redirect(request.referrer or url_for('cart_bp.view_cart'))
             existing.quantity += quantity
         else:
@@ -105,7 +107,7 @@ def add_to_cart():
 @login_required
 def remove_from_cart():
     customer_id = _customer_id()
-    row_id      = request.form.get('row_id', type=int)
+    row_id = request.form.get('row_id', type=int)
 
     if not row_id:
         flash('Invalid request.', 'error')
@@ -131,8 +133,8 @@ def remove_from_cart():
 @login_required
 def update_cart():
     customer_id = _customer_id()
-    product_id  = request.form.get('product_id', type=int)
-    variant_id  = request.form.get('variant_id', type=int)
+    product_id = request.form.get('product_id', type=int)
+    variant_id = request.form.get('variant_id', type=int)
 
     cart_item = Cart.query.filter_by(
         customer_id=customer_id,
@@ -175,11 +177,11 @@ def carts():
 def add_to_cart_api():
     """Add one or more units of a product/variant to the cart."""
     customer_id = _customer_id()
-    data        = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True) or {}
 
     product_id = data.get('product_id')
     variant_id = data.get('variant_id')
-    quantity   = data.get('quantity', 1)
+    quantity = data.get('quantity', 1)
 
     if not product_id or quantity < 1:
         return jsonify(success=False, message='Invalid request.'), 400
@@ -195,7 +197,7 @@ def add_to_cart_api():
 
     if product.images:
         primary = next((i for i in product.images if i.is_primary), None)
-        image   = (primary or product.images[0]).image
+        image = (primary or product.images[0]).image
 
     if variant_id:
         variant = ProductVariant.query.get(variant_id)
@@ -211,20 +213,20 @@ def add_to_cart_api():
         vtype = variant.type
         if variant.images:
             primary = next((i for i in variant.images if i.is_primary), None)
-            image   = (primary or variant.images[0]).image
+            image = (primary or variant.images[0]).image
 
     try:
         existing = Cart.query.filter_by(
             customer_id=customer_id,
             product_id=product_id,
             variant_id=variant_id,
-            status= 1
+            status = 1
         ).first()
 
         if existing:
             if variant_id:
-                available = (variant.physical_stock or 0) - (variant.reserved_stock or 0)
-                remaining = available - existing.quantity
+                available = variant.available_stock  # ← use the safe property
+                remaining = max(0, available - existing.quantity)  # ← clamp to 0
                 if existing.quantity + quantity > available:
                     return jsonify(
                         success=False,
@@ -256,10 +258,10 @@ def add_to_cart_api():
 def decrease_cart_api():
     """Decrease quantity by 1. Removes the row when it reaches 0."""
     customer_id = _customer_id()
-    data        = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True) or {}
 
     product_id = data.get('product_id')
-    variant_id = data.get('variant_id')   # may be None
+    variant_id = data.get('variant_id')  # may be None
 
     if not product_id:
         return jsonify(success=False, message='Invalid request.'), 400
@@ -296,8 +298,8 @@ def decrease_cart_api():
 def remove_from_cart_api():
     """Completely remove a cart row by its id."""
     customer_id = _customer_id()
-    data        = request.get_json(silent=True) or {}
-    row_id      = data.get('row_id')
+    data = request.get_json(silent=True) or {}
+    row_id = data.get('row_id')
 
     if not row_id:
         return jsonify(success=False, message='Invalid request.'), 400
@@ -318,5 +320,3 @@ def remove_from_cart_api():
     except Exception:
         db.session.rollback()
         return jsonify(success=False, message='Could not remove item.'), 500
-
-

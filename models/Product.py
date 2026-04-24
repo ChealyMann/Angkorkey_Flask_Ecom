@@ -17,6 +17,8 @@ class Product(db.Model):
     image = db.Column(db.String(100), nullable=True)
     desc = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(5), nullable=False)
+    has_variants = db.Column(db.Boolean, default=False, nullable=False)
+
     images = db.relationship('ProductImage', backref='product', lazy=True)
     category_name = db.relationship('Category', backref='product', lazy=True)
     variants = db.relationship('ProductVariant', backref='product', lazy=True)
@@ -89,6 +91,7 @@ def getProductDetail(product_id: int):
                                     'attribute_label', TRIM(SUBSTR(pv2.type, 1, INSTR(pv2.type, ':') - 1)),
                                     'attribute_value', TRIM(SUBSTR(pv2.type, INSTR(pv2.type, ':') + 1)),
                                     'original_price', pv2.price,
+                                    'discount_price', pv2.discount_price,
                                     'available_stock', (pv2.physical_stock - pv2.reserved_stock),
                                     'stock_status', CASE
                                         WHEN (pv2.physical_stock - pv2.reserved_stock) <= 0 THEN 'out_of_stock'
@@ -122,11 +125,13 @@ def getProductDetail(product_id: int):
 
     color_groups = json.loads(row.color_groups) if row.color_groups else []
 
-    # Parse nested sizes JSON inside each color group
     for group in color_groups:
         group["types"] = json.loads(group["types"]) if isinstance(group["types"], str) else group["types"]
-        for size in group["types"]:
-            size["images"] = json.loads(size["images"]) if isinstance(size["images"], str) else (size["images"] or [])
+        for variant in group["types"]:
+            variant["images"] = json.loads(variant["images"]) if isinstance(variant["images"], str) else (variant["images"] or [])
+            # Remove discount_price key entirely if null
+            if variant.get("discount_price") is None:
+                variant.pop("discount_price", None)
 
     return {
         "product_id": row.product_id,

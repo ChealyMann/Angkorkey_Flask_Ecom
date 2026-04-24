@@ -86,7 +86,7 @@
     // 1. Scroll Listener (Infinite Scroll)
     window.addEventListener('scroll', () => {
         if (isLoading || !hasNext) return;
-        
+
         const rect = trigger.getBoundingClientRect();
         // Load when trigger is within 200px of viewport bottom
         if (rect.top <= window.innerHeight + 200) {
@@ -106,7 +106,7 @@
     // 3. Handle Category Click
     function filterCategory(catId, btnElement) {
         currentCategory = catId;
-        
+
         // Update Buttons Visuals
         document.querySelectorAll(".category-btn").forEach((btn) => {
             btn.className = "category-btn whitespace-nowrap px-5 py-2 rounded-full text-xs font-medium border transition-all duration-300 bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20";
@@ -141,7 +141,7 @@
             grid.style.opacity = "0.3";
             // Check if trigger has "No more products" text and reset it for new search
             trigger.innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-4 border-white/20 border-t-white"></div>';
-            trigger.classList.add('opacity-0'); 
+            trigger.classList.add('opacity-0');
         }
 
         try {
@@ -152,7 +152,7 @@
 
             const response = await fetch(url);
             if (!response.ok) throw new Error("Network response was not ok");
-            
+
             const data = await response.json();
             hasNext = data.has_next;
 
@@ -178,7 +178,7 @@
             console.error("Error loading products:", error);
         } finally {
             isLoading = false;
-            
+
             if (isAppend) {
                 if (hasNext) trigger.classList.add('opacity-0'); // Hide spinner until next scroll
             } else {

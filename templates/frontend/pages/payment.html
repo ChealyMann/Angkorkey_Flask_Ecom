@@ -14,25 +14,29 @@
             height: 100vh;
             margin: 0;
         }
+
         .card {
             background: white;
             padding: 40px 30px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
             text-align: center;
             max-width: 350px;
             width: 100%;
         }
+
         h2 {
-            color: #E3000F; /* Bakong Red */
+            color: #E3000F;
             margin-top: 0;
             margin-bottom: 5px;
         }
+
         p.subtitle {
             color: #666;
             margin-bottom: 25px;
             font-size: 15px;
         }
+
         .qr-container {
             background: #fff;
             padding: 15px;
@@ -41,12 +45,14 @@
             display: inline-block;
             margin-bottom: 25px;
         }
+
         .qr-container img {
             max-width: 100%;
             height: auto;
             display: block;
             border-radius: 8px;
         }
+
         .instructions {
             font-size: 14px;
             color: #555;
@@ -56,24 +62,116 @@
             border-left: 4px solid #E3000F;
             text-align: left;
         }
+
+        .status-badge {
+            margin-top: 16px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-waiting  { background: #fff3cd; color: #856404; }
+        .status-paid     { background: #d1e7dd; color: #0f5132; }
+        .status-error    { background: #f8d7da; color: #842029; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Angkorkey</h2>
-        <p class="subtitle">Scan to pay with any KHQR app</p>
+<div class="card" id="app">
+    <h2>Angkorkey</h2>
+    <p class="subtitle">Scan to pay with any KHQR app</p>
 
-        <div class="qr-container">
-            <img src="{{ url_for('static', filename=qr_filename) }}" alt="KHQR Code">
-        </div>
-
-        <div class="instructions">
-            <strong>How to pay:</strong><br>
-            1. Open your banking app.<br>
-            2. Scan this QR code.<br>
-        </div>
+    <div class="qr-container">
+        <img src="{{ url_for('static', filename=qr_filename) }}" alt="KHQR Code">
     </div>
+
+    <div class="instructions">
+        <strong>How to pay:</strong><br>
+        1. Open your banking app.<br>
+        2. Scan this QR code.<br>
+        3. Confirm payment in the app.
+    </div>
+
+    <span class="status-badge"
+          :class="{
+              'status-waiting': statusLabel === 'Waiting for payment…',
+              'status-paid':    statusLabel === 'Payment confirmed!',
+              'status-error':   statusLabel === 'Error checking payment'
+          }">
+        [[ statusLabel ]]
+    </span>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+
+        data() {
+            return {
+                qrcode:      {{ qr_string|tojson }},
+                billNumber:  {{ bill_number|tojson }},
+                interval:    null,
+                redirecting: false,
+                statusLabel: 'Waiting for payment…'
+            }
+        },
+
+        methods: {
+            checkStatus() {
+                axios.get('/check_payment', {
+                    params: {
+                        qrcode:      this.qrcode,
+                        bill_number: this.billNumber   // ← sent to backend
+                    }
+                })
+                .then((response) => {
+                    const status =
+                        response.data?.status ||
+                        response.data?.data?.status;
+
+                    console.log("STATUS:", status);
+
+                    if (status === "PAID") {
+                        this.statusLabel = 'Payment confirmed!';
+
+                        if (this.interval) {
+                            clearInterval(this.interval);
+                            this.interval = null;
+                        }
+
+                        if (!this.redirecting) {
+                            this.redirecting = true;
+                            // Pass bill_number to the success page for order details
+                            window.location.replace(
+                                `/payment/success?bill_number=${encodeURIComponent(this.billNumber)}`
+                            );
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log("Check payment error:", error);
+                    this.statusLabel = 'Error checking payment';
+                });
+            }
+        },
+
+        mounted() {
+            this.checkStatus();
+            this.interval = setInterval(this.checkStatus, 3000);
+        },
+
+        beforeUnmount() {
+            if (this.interval) clearInterval(this.interval);
+        }
+
+    }).mount("#app");
+</script>
 
 </body>
 </html>

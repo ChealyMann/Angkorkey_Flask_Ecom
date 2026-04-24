@@ -1,0 +1,923 @@
+{% extends 'backend/admin/master.html' %}
+
+{% block main %}
+
+    <style>
+        .report-card {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+        }
+
+        .report-stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-stat-card .icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .report-stat-card .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 6px;
+        }
+
+        .report-stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.2;
+            margin-bottom: 0;
+            word-break: break-word;
+        }
+
+        .report-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .summary-list .summary-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .summary-list .summary-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .summary-list .summary-item:first-child {
+            padding-top: 0;
+        }
+
+        .summary-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            color: #111827;
+            text-align: right;
+            margin-left: 12px;
+        }
+
+        .summary-value.text-danger {
+            color: #dc3545 !important;
+        }
+
+        .summary-value.text-success {
+            color: #198754 !important;
+        }
+
+        .summary-value.text-primary {
+            color: #0d6efd !important;
+        }
+
+        .summary-value.text-warning {
+            color: #f59e0b !important;
+        }
+
+        .modern-table {
+            margin-bottom: 0;
+        }
+
+        .modern-table thead th {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+            font-weight: 700;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            padding-top: 14px;
+            padding-bottom: 14px;
+            white-space: nowrap;
+        }
+
+        .modern-table tbody td {
+            vertical-align: middle;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            border-color: #f1f5f9;
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .badge-status-pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-status-confirmed {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .badge-status-shipped {
+            background: #ecfeff;
+            color: #0f766e;
+        }
+
+        .badge-status-delivered {
+            background: #ecfdf5;
+            color: #15803d;
+        }
+
+        .badge-status-canceled {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .badge-status-returned {
+            background: #faf5ff;
+            color: #7e22ce;
+        }
+
+        .badge-payment-paid {
+            background: #ecfdf5;
+            color: #15803d;
+        }
+
+        .badge-payment-pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-payment-cod {
+            background: #f5f3ff;
+            color: #6d28d9;
+        }
+
+        .badge-payment-online {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .stock-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .stock-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stock-icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 12px;
+            background: #fff7ed;
+            color: #d97706;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stock-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .stock-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .stock-meta {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .empty-state {
+            padding: 32px 12px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar .form-control,
+        .filter-bar .btn {
+            min-height: 42px;
+            border-radius: 12px;
+        }
+
+        .report-header-card {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            border: 0;
+            border-radius: 18px;
+            color: #fff;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(17, 24, 39, 0.18);
+        }
+
+        .report-header-card .muted-text {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .report-header-card .report-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .quick-report-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+        .quick-report-card {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s ease;
+            height: 100%;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .quick-report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+        }
+
+        .quick-report-icon {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quick-report-icon.sales {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .quick-report-icon.profit {
+            background: #ecfdf5;
+            color: #15803d;
+        }
+
+        .quick-report-icon.stock {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .quick-report-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .quick-report-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+
+        .quick-report-arrow {
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+
+        .quick-report-card:hover .quick-report-arrow {
+            color: #111827;
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 767.98px) {
+            .report-stat-card .stat-value {
+                font-size: 1.3rem;
+            }
+
+            .filter-bar {
+                justify-content: stretch;
+            }
+
+            .filter-bar > * {
+                width: 100%;
+            }
+        }
+    </style>
+
+    {% macro order_status_badge(status_label) %}
+        {% set label = (status_label or '')|lower %}
+        {% if label == 'pending' %}
+            <span class="badge-soft badge-status-pending">Pending</span>
+        {% elif label == 'confirmed' %}
+            <span class="badge-soft badge-status-confirmed">Confirmed</span>
+        {% elif label == 'shipped' %}
+            <span class="badge-soft badge-status-shipped">Shipped</span>
+        {% elif label == 'delivered' %}
+            <span class="badge-soft badge-status-delivered">Delivered</span>
+        {% elif label == 'canceled' %}
+            <span class="badge-soft badge-status-canceled">Canceled</span>
+        {% elif label == 'returned' %}
+            <span class="badge-soft badge-status-returned">Returned</span>
+        {% else %}
+            <span class="badge-soft badge-status-pending">{{ status_label or 'Unknown' }}</span>
+        {% endif %}
+    {% endmacro %}
+
+    {% macro payment_status_badge(payment_status) %}
+        {% set label = (payment_status or '')|lower %}
+        {% if label == 'paid' %}
+            <span class="badge-soft badge-payment-paid">Paid</span>
+        {% else %}
+            <span class="badge-soft badge-payment-pending">
+                {{ payment_status|replace('_', ' ')|title if payment_status else 'Pending' }}
+            </span>
+        {% endif %}
+    {% endmacro %}
+
+    {% macro payment_method_badge(payment_method) %}
+        {% set method = (payment_method or '')|lower %}
+        {% if method == 'cash_on_delivery' %}
+            <span class="badge-soft badge-payment-cod">Cash on Delivery</span>
+        {% else %}
+            <span class="badge-soft badge-payment-online">
+                {{ payment_method|replace('_', ' ')|title if payment_method else 'Online Payment' }}
+            </span>
+        {% endif %}
+    {% endmacro %}
+
+    <div class="page-breadcrumb">
+        <div class="row">
+            <div class="col-12 col-lg-6 align-self-center">
+                <h3 class="page-title text-truncate text-dark font-weight-medium mb-1">Sales Report</h3>
+                <div class="d-flex align-items-center">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb m-0 p-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ url_for('admin.admin') }}">Dashboard</a>
+                            </li>
+                            <li class="breadcrumb-item text-muted active" aria-current="page">Sales Report</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6 align-self-center mt-3 mt-lg-0">
+                <form method="GET" action="{{ url_for('report.sales_report') }}">
+                    <div class="filter-bar">
+                        <input type="date"
+                               name="report_date"
+                               class="form-control bg-white border"
+                               value="{{ selected_date }}">
+
+                        <button type="submit" class="btn btn-dark">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+
+                        <a href="{{ url_for('report.export_sales_report', report_date=selected_date) }}"
+                           class="btn btn-success">
+                            <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+
+        <div class="card report-header-card mb-4">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h2 class="mb-2 text-white">Sales dashboard overview</h2>
+                        <p class="mb-0 muted-text">
+                            Track revenue, orders, payment performance, inventory alerts, and best-selling items for the selected date.
+                        </p>
+                    </div>
+
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <span class="report-date">
+                            <i data-feather="calendar"></i>
+                            Report Date: {{ selected_date }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Reports Navigation -->
+        <div class="row mb-4">
+
+
+            <div class="col-lg-6 mb-6 mb-lg-0">
+                <a href="{{ url_for('report.profit_loss_report', from_date=selected_date, to_date=selected_date) }}"
+                   class="quick-report-link">
+                    <div class="quick-report-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="quick-report-icon profit">
+                                        <i data-feather="trending-up"></i>
+                                    </div>
+                                    <div>
+                                        <div class="quick-report-title">Profit & Loss</div>
+                                        <p class="quick-report-text">
+                                            View profit, COGS, net sales, and item profit details.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-report-arrow">
+                                    <i data-feather="arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-6">
+                <a href="{{ url_for('report.low_stock_report') }}"
+                   class="quick-report-link">
+                    <div class="quick-report-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="quick-report-icon stock">
+                                        <i data-feather="alert-triangle"></i>
+                                    </div>
+                                    <div>
+                                        <div class="quick-report-title">Low Stock</div>
+                                        <p class="quick-report-text">
+                                            Check products and variants that need restocking.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-report-arrow">
+                                    <i data-feather="arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Top Cards -->
+        <div class="row">
+            <div class="col-sm-6 col-xl-3 mb-4">
+                <div class="card report-card report-stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap">
+                                <i data-feather="dollar-sign"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="stat-label">Today Sales</div>
+                                <h2 class="stat-value">${{ '%.2f'|format(report.today_sales or 0) }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3 mb-4">
+                <div class="card report-card report-stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap">
+                                <i data-feather="calendar"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="stat-label">This Month Sales</div>
+                                <h2 class="stat-value">${{ '%.2f'|format(report.month_sales or 0) }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3 mb-4">
+                <div class="card report-card report-stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap">
+                                <i data-feather="shopping-cart"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="stat-label">Today Orders</div>
+                                <h2 class="stat-value">{{ report.today_orders or 0 }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3 mb-4">
+                <div class="card report-card report-stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap">
+                                <i data-feather="bar-chart-2"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="stat-label">Avg Order Value</div>
+                                <h2 class="stat-value">${{ '%.2f'|format(report.avg_order_value or 0) }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue / Payment / Profit -->
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <h4 class="report-section-title">Revenue Summary</h4>
+
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <span class="summary-label">Gross Sales</span>
+                                <span class="summary-value">${{ '%.2f'|format(report.gross_sales or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Discount</span>
+                                <span class="summary-value text-danger">-${{ '%.2f'|format(report.total_discount or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Shipping Fee</span>
+                                <span class="summary-value">${{ '%.2f'|format(report.total_shipping or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Net Sales</span>
+                                <span class="summary-value text-success">${{ '%.2f'|format(report.net_sales or 0) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <h4 class="report-section-title">Payment Summary</h4>
+
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <span class="summary-label">Cash on Delivery</span>
+                                <span class="summary-value">${{ '%.2f'|format(report.cod_sales or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Online Payment</span>
+                                <span class="summary-value">${{ '%.2f'|format(report.online_sales or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Paid Orders</span>
+                                <span class="summary-value text-success">{{ report.paid_orders or 0 }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Pending Payment</span>
+                                <span class="summary-value text-warning">{{ report.pending_payment_orders or 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <h4 class="report-section-title">Estimated Profit</h4>
+
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <span class="summary-label">Estimated Profit</span>
+                                <span class="summary-value text-primary">${{ '%.2f'|format(report.estimated_profit or 0) }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Sold Units</span>
+                                <span class="summary-value">{{ report.sold_units or 0 }}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Report Date</span>
+                                <span class="summary-value">{{ selected_date }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status / Low Stock -->
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <h4 class="report-section-title">Order Status Summary</h4>
+
+                        <div class="table-responsive">
+                            <table class="table modern-table align-middle">
+                                <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th class="text-center">Count</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                <tr>
+                                    <td>{{ order_status_badge('Pending') }}</td>
+                                    <td class="text-center fw-bold">{{ report.pending_orders or 0 }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ order_status_badge('Confirmed') }}</td>
+                                    <td class="text-center fw-bold">{{ report.confirmed_orders or 0 }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ order_status_badge('Shipped') }}</td>
+                                    <td class="text-center fw-bold">{{ report.shipped_orders or 0 }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ order_status_badge('Delivered') }}</td>
+                                    <td class="text-center fw-bold">{{ report.delivered_orders or 0 }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ order_status_badge('Canceled') }}</td>
+                                    <td class="text-center fw-bold">{{ report.canceled_orders or 0 }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ order_status_badge('Returned') }}</td>
+                                    <td class="text-center fw-bold">{{ report.returned_orders or 0 }}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                            <h4 class="report-section-title mb-0">Low Stock Alert</h4>
+
+                            <a href="{{ url_for('report.low_stock_report') }}"
+                               class="btn btn-sm btn-outline-dark rounded-pill">
+                                View All
+                            </a>
+                        </div>
+
+                        {% if report.low_stock %}
+                            <div>
+                                {% for item in report.low_stock %}
+                                    <div class="stock-item">
+                                        <div class="stock-icon">
+                                            <i data-feather="alert-triangle"></i>
+                                        </div>
+
+                                        <div class="flex-grow-1">
+                                            <div class="stock-title">{{ item.product_name }}</div>
+                                            <div class="stock-subtitle">{{ item.color }} / {{ item.type }}</div>
+                                            <div class="stock-meta">Available Stock: {{ item.available_stock }}</div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state">
+                                <i data-feather="check-circle" class="mb-2"></i>
+                                <div>No low stock items.</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h4 class="report-section-title mb-0">Top Selling Products</h4>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table modern-table align-middle">
+                                <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Qty Sold</th>
+                                    <th class="text-end">Sales</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {% for item in report.top_products %}
+                                    <tr>
+                                        <td class="fw-semibold text-dark">{{ item.name }}</td>
+                                        <td class="text-center">{{ item.qty_sold }}</td>
+                                        <td class="text-end fw-bold">${{ '%.2f'|format(item.sales or 0) }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4">No data</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Variants -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h4 class="report-section-title mb-0">Top Selling Variants</h4>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table modern-table align-middle">
+                                <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Variant</th>
+                                    <th class="text-center">Qty Sold</th>
+                                    <th class="text-end">Sales</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {% for item in report.top_variants %}
+                                    <tr>
+                                        <td class="fw-semibold text-dark">{{ item.product_name }}</td>
+                                        <td>{{ item.color }} / {{ item.type }}</td>
+                                        <td class="text-center">{{ item.qty_sold }}</td>
+                                        <td class="text-end fw-bold">${{ '%.2f'|format(item.sales or 0) }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">No data</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card report-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h4 class="report-section-title mb-0">Recent Orders</h4>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table modern-table align-middle">
+                                <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Date</th>
+                                    <th>Payment Method</th>
+                                    <th>Payment Status</th>
+                                    <th>Order Status</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {% for order in report.recent_orders %}
+                                    <tr>
+                                        <td class="fw-semibold text-dark">{{ order.invoice_no }}</td>
+                                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>{{ payment_method_badge(order.payment_method) }}</td>
+                                        <td>{{ payment_status_badge(order.payment_status) }}</td>
+                                        <td>{{ order_status_badge(order.status_label) }}</td>
+                                        <td class="text-end fw-bold">${{ '%.2f'|format(order.grand_total or 0) }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No recent orders</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    Swal.fire({
+                        title: '{{ "Success" if category == "success" else "Error" }}',
+                        text: '{{ message }}',
+                        icon: '{{ category }}',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        confirmButtonColor: "#000000"
+                    });
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.feather) {
+                feather.replace();
+            }
+        });
+    </script>
+
+    <footer class="footer text-center text-muted">
+        All Rights Reserved by Freedash. Designed and Developed by
+        <a href="https://adminmart.com/" target="_blank">Angkorkey</a>.
+    </footer>
+
+{% endblock %}

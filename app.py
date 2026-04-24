@@ -21,6 +21,8 @@ from blueprint.payment import payment_bp
 from extensions import db, cache, limiter
 from flask_migrate import Migrate
 from models import User, Category
+from blueprint.admin.report.report import report_bp
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -47,6 +49,7 @@ app.register_blueprint(payment_bp)
 
 app.register_blueprint(cart_bp)
 app.register_blueprint(order_bp)
+app.register_blueprint(report_bp)
 
 app.config['logo'] = 'static/admin/assets/images/logo-text-1.png'
 app.config['title'] = 'Angkorkey'

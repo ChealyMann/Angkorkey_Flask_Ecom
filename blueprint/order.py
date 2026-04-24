@@ -8,6 +8,9 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from functions.functions import _cart_payload, _customer_id, generate_secure_invoice, login_required
 from models import Order, OrderItem, Cart
 from extensions import db
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
+
 
 order_bp = Blueprint('order', __name__)
 
@@ -33,6 +36,7 @@ VALID_TRANSITIONS = {
     (OrderStatus.CONFIRMED, OrderStatus.SHIPPED): "Shipped",
     (OrderStatus.CONFIRMED, OrderStatus.CANCELED): "Canceled",
     (OrderStatus.SHIPPED, OrderStatus.DELIVERED): "Delivered",
+    (OrderStatus.SHIPPED, OrderStatus.RETURNED): "Returned",
     (OrderStatus.DELIVERED, OrderStatus.RETURNED): "Returned",
 }
 
@@ -53,7 +57,15 @@ def _apply_stock_changes(order, current_status, new_status):
         elif (current_status, new_status) == (OrderStatus.SHIPPED, OrderStatus.CANCELED):
             variant.physical_stock += item.qty
 
-        elif (current_status, new_status) == (OrderStatus.DELIVERED, OrderStatus.RETURNED):
+
+        elif (current_status, new_status) in [
+
+            (OrderStatus.SHIPPED, OrderStatus.RETURNED),
+
+            (OrderStatus.DELIVERED, OrderStatus.RETURNED),
+
+        ]:
+
             variant.physical_stock += item.qty
 
 
@@ -81,12 +93,10 @@ def order():
     customer_id = _customer_id()
     items = _cart_payload(customer_id)
 
-    # 1. Validate cart
     if not items['items']:
         flash('Your cart is empty.', 'info')
         return redirect(url_for('cart_bp.view_cart'))
 
-    # 2. Read phone, payment, and coordinates from form
     phone = request.form.get('phone', '').strip()
     payment_method = request.form.get('payment_method', 'cash_on_delivery').strip()
 
@@ -101,7 +111,6 @@ def order():
         flash('Please enter your phone number.', 'danger')
         return redirect(url_for('order.checkout'))
 
-    # 3. Server-side reverse geocode from the submitted coordinates
     address = 'Unknown'
     city = 'Unknown'
     full_address = None
@@ -117,18 +126,19 @@ def order():
             ] if p]
             address = ', '.join(parts) or location.address.split(',')[0]
             city = (
-                    raw.get('city') or raw.get('town') or
-                    raw.get('village') or raw.get('county') or
-                    raw.get('state', 'Unknown')
+                raw.get('city') or raw.get('town') or
+                raw.get('village') or raw.get('county') or
+                raw.get('state', 'Unknown')
             )
             full_address = location.address
     except (GeocoderTimedOut, GeocoderServiceError):
-        # Non-fatal: fall back to coordinates as address string
         address = f'{lat:.5f}, {lng:.5f}'
         city = 'Unknown'
         full_address = f'Coordinates: {lat:.5f}, {lng:.5f}'
 
-    # 4. Create Order header — address/city come from geopy, not from the form fields
+    # All orders start as pending; bakong is confirmed paid via webhook/polling
+    payment_status = 'pending'
+
     new_order = Order(
         customer_id=customer_id,
         phone=phone,
@@ -140,19 +150,14 @@ def order():
         sub_total=items['summary']['total'],
         grand_total=items['summary']['total'],
         payment_method=payment_method,
+        payment_status=payment_status,   # make sure this column exists
     )
     db.session.add(new_order)
     db.session.flush()
 
-    # 4. Generate invoice
     bill_number = generate_secure_invoice(new_order.id)
     new_order.invoice_no = bill_number
 
-    if payment_method == 'bakong_khqr':
-        return redirect(
-            url_for('payment.payment', amount=items['summary']['total'], currency='USD', bill_number=bill_number))
-
-    # 5. Create OrderItems
     for item in items['items']:
         order_item = OrderItem()
         order_item.product_id = item['product_id']
@@ -163,30 +168,34 @@ def order():
         order_item.sub_total = item['quantity'] * item['price']
         db.session.add(order_item)
 
-    # 6. Inventory & cart cleanup
     cart_items = Cart.query.filter_by(customer_id=customer_id, status=1).all()
     if not cart_items:
-        return jsonify({'message': 'No cart items found'})
+        db.session.rollback()
+        flash('No cart items found.', 'danger')
+        return redirect(url_for('cart_bp.view_cart'))
 
     for item in cart_items:
-        reserved_stock = item.variant.reserved_stock
-        reserved_stock += item.quantity
+        new_reserved_stock = item.variant.reserved_stock + item.quantity
 
-        if item.variant.physical_stock <= item.variant.reserved_stock:
+        # check BEFORE saving
+        if item.variant.physical_stock < new_reserved_stock:
             flash(f'Sorry, out of stock: {item.product_name} – {item.variant.color}', 'danger')
             db.session.rollback()
             return redirect(url_for('cart_bp.view_cart'))
 
-        item.variant.reserved_stock = reserved_stock
+        item.variant.reserved_stock = new_reserved_stock
         item.status = 0
 
-    # 7. Commit
     try:
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         flash('Something went wrong placing your order. Please try again.', 'danger')
         raise e
+
+    if payment_method == 'bakong_khqr':
+        return redirect(
+            url_for('payment.payment', amount=items['summary']['total'], currency='USD', bill_number=bill_number))
 
     flash(f'Order #{new_order.invoice_no} placed successfully! 🎉', 'success')
     return redirect(url_for('home.home'))
@@ -197,18 +206,6 @@ def order():
 @order_bp.get('/api/geocode/reverse')
 @login_required
 def reverse_geocode():
-    """
-    GET /api/geocode/reverse?lat=<float>&lng=<float>
-
-    Uses geopy (Nominatim) to turn coordinates into a structured address.
-    Response:
-    {
-        "success": true,
-        "address": "Full display address",
-        "street":  "House/Road/Quarter",
-        "city":    "Phnom Penh"
-    }
-    """
     try:
         lat = float(request.args.get('lat', ''))
         lng = float(request.args.get('lng', ''))
@@ -256,16 +253,56 @@ def reverse_geocode():
 
 @order_bp.route('/admin/order')
 def order_list():
-    page = request.args.get(get_page_parameter(), default=1, type=int)
-    per_page = 10
-    pagination_obj = Order.query.order_by(Order.created_at.desc()).paginate(page=page, per_page=per_page,
-                                                                            error_out=False)
-    pagination = Pagination(page=page, per_page=per_page, total=pagination_obj.total, css_framework='bootstrap5')
+    cambodia_tz = ZoneInfo("Asia/Phnom_Penh")
+    today_kh = datetime.now(cambodia_tz).date()
 
-    return render_template('backend/admin/pages/order/order.html', orders={
-        'list': pagination_obj.items,
-        'pagination': pagination,
-    })
+    selected_date = request.args.get('order_date', '').strip()
+    sort_order = request.args.get('sort', 'desc').strip().lower()
+
+    page = request.args.get(get_page_parameter(), default=1, type=int)
+    per_page = 7
+
+    query = Order.query
+
+    # default = today Cambodia time
+    filter_date = today_kh
+
+    if selected_date:
+        try:
+            filter_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+        except ValueError:
+            filter_date = today_kh
+
+    start_dt = datetime.combine(filter_date, time.min).replace(tzinfo=cambodia_tz)
+    end_dt = datetime.combine(filter_date, time.max).replace(tzinfo=cambodia_tz)
+
+    query = query.filter(
+        Order.created_at >= start_dt,
+        Order.created_at <= end_dt
+    )
+
+    if sort_order == 'asc':
+        query = query.order_by(Order.created_at.asc())
+    else:
+        query = query.order_by(Order.created_at.desc())
+
+    pagination_obj = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = Pagination(
+        page=page,
+        per_page=per_page,
+        total=pagination_obj.total,
+        css_framework='bootstrap5'
+    )
+
+    return render_template(
+        'backend/admin/pages/order/order.html',
+        orders={
+            'list': pagination_obj.items,
+            'pagination': pagination,
+        },
+        selected_date=filter_date.strftime('%Y-%m-%d'),
+        sort_order=sort_order
+    )
 
 
 @order_bp.route('/admin/order/delete/<int:order_id>', methods=['POST'])
@@ -315,6 +352,13 @@ def update_status():
     try:
         _apply_stock_changes(order, current_status, new_status)
         order.status = new_status
+
+        if order.payment_method == 'cash_on_delivery':
+            if new_status == OrderStatus.DELIVERED:
+                order.payment_status = 'paid'
+            elif new_status == OrderStatus.RETURNED:
+                order.payment_status = 'pending'   # or 'refunded' if you track refunds
+
         db.session.commit()
         flash(f'Order status changed to {label}.', 'success')
     except Exception:

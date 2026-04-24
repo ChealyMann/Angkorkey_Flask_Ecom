@@ -1,37 +1,44 @@
 {% if products %}
-{% for product in products %}
-<div class="animate-fade-in">
-    <a href="{{ url_for('home.product_detail',product_id=product.id) }}"
-        class="group block bg-[#121214] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300">
-        <div class="relative pt-[100%] overflow-hidden bg-[#09090b]">
-            <img src="{{ url_for('static', filename='images/resized_' + product.image) if product.image else 'https://via.placeholder.com/400x400?text=No+Image' }}"
-                alt="{{ product.name }}" loading="lazy"
-                class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
-        </div>
-
-        <div class="p-3 md:p-4">
-            <h3 class="text-sm font-semibold text-white leading-tight mb-1 line-clamp-2">
-                {{ product.name }}
-            </h3>
-            <p class="text-[10px] md:text-xs text-gray-500 mb-3">
-                {{ product.category_name.name }}
-            </p>
-            <div class="flex justify-between items-center mt-2">
-                <div class="flex flex-row items-baseline gap-2 leading-none">
-                    <span class="text-sm md:text-base font-bold text-white">
-                        ${{ "%.2f"|format(product.price) }}
-                    </span>
+    {% for product in products %}
+        <div class="animate-fade-in">
+            <a href="{{ url_for('home.product_detail',product_id=product.id) }}"
+               class="group block bg-[#121214] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300">
+                <div class="relative pt-[100%] overflow-hidden bg-[#09090b]">
+                    <img src="{{ url_for('static', filename='images/resized_' + product.image) if product.image else 'https://via.placeholder.com/400x400?text=No+Image' }}"
+                         alt="{{ product.name }}" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
                 </div>
-                <button class="text-[10px] bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition">
-                    View
-                </button>
-            </div>
+
+                <div class="p-3 md:p-4">
+                    <h3 class="text-sm font-semibold text-white leading-tight mb-1 line-clamp-2">
+                        {{ product.name }}
+                    </h3>
+                    <p class="text-[10px] md:text-xs text-gray-500 mb-3">
+                        {{ product.category_name.name }}
+                    </p>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex flex-row items-baseline gap-2 leading-none">
+                            {% if product.has_price_range %}
+                                <span class="text-sm md:text-base font-bold text-white">
+                                ${{ "%.2f"|format(product.min_price) }} -
+                                ${{ "%.2f"|format(product.max_price) }}
+                                </span>
+                            {% else %}
+                                <span class="text-sm md:text-base font-bold text-white">
+                                ${{ "%.2f"|format(product.max_price) }}
+                                 </span>
+                            {% endif %}
+                        </div>
+                        <button class="text-[10px] bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition">
+                            View
+                        </button>
+                    </div>
+                </div>
+            </a>
         </div>
-    </a>
-</div>
-{% endfor %}
+    {% endfor %}
 {% else %}
-<div class="col-span-full py-20 text-center animate-fade-in">
-    <p class="text-gray-500 text-sm">No products found.</p>
-</div>
+    <div class="col-span-full py-20 text-center animate-fade-in">
+        <p class="text-gray-500 text-sm">No products found.</p>
+    </div>
 {% endif %}

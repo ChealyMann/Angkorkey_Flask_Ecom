@@ -368,14 +368,17 @@
                             {{ product.name }}
                         </h1>
                         <span class="text-xl text-zinc-600 font-light lg:hidden">|</span>
+                        {# Mobile inline price #}
                         <div class="flex items-center gap-2 lg:hidden">
                             <span class="text-xl font-semibold text-red-500 tracking-tight">$[[ currentPrice ]]</span>
+                            <span v-if="currentOriginalPrice" class="text-sm text-gray-500 line-through">$[[ currentOriginalPrice ]]</span>
                         </div>
                     </div>
 
                     {# Desktop price #}
                     <div class="hidden lg:flex items-center gap-4 mb-6">
                         <span class="text-4xl font-semibold text-red-500 tracking-tight">$[[ currentPrice ]]</span>
+                        <span v-if="currentOriginalPrice" class="text-xl text-gray-500 line-through">$[[ currentOriginalPrice ]]</span>
                     </div>
 
                     {# ── Variant selectors ────────────────────────────────── #}
@@ -581,6 +584,7 @@
                 <div class="flex flex-col">
                     <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Total</span>
                     <span class="text-xl font-bold text-white leading-none">$[[ currentPrice ]]</span>
+                    <span v-if="currentOriginalPrice" class="text-xs text-gray-500 line-through">$[[ currentOriginalPrice ]]</span>
                 </div>
 
                 <button type="button"
@@ -675,7 +679,7 @@
                     const mainImage = ref(defaultImgPath);
                     const isDescExpanded = ref(false);
                     const descLengthRef = ref(descLength);
-                    const isAddingToCart = ref(false);   // ← NEW: button loading state
+                    const isAddingToCart = ref(false);
 
                     // ── 4. Computed properties ────────────────────────────────────
 
@@ -684,11 +688,21 @@
                         return selectedColorGroup.value.sizes || selectedColorGroup.value.types || [];
                     });
 
+                    // Shows discount_price if available, otherwise original_price
                     const currentPrice = computed(() => {
-                        if (selectedVariant.value && selectedVariant.value.original_price) {
-                            return Number(selectedVariant.value.original_price).toFixed(2);
+                        if (selectedVariant.value) {
+                            const price = selectedVariant.value.discount_price ?? selectedVariant.value.original_price;
+                            return Number(price).toFixed(2);
                         }
                         return Number(defaultPrice).toFixed(2);
+                    });
+
+                    // Returns the original_price only when a discount_price exists (for strikethrough display)
+                    const currentOriginalPrice = computed(() => {
+                        if (selectedVariant.value?.discount_price) {
+                            return Number(selectedVariant.value.original_price).toFixed(2);
+                        }
+                        return null;
                     });
 
                     const stockInfo = computed(() => {
@@ -801,12 +815,9 @@
                     };
 
                     // ── 7. Add to cart via API ────────────────────────────────────
-                    // Replaces the old form POST. Calls /api/cart/add with JSON,
-                    // shows a toast on success/error, and updates the cart badge.
                     const addToCart = async () => {
                         if (isOutOfStock.value || isAddingToCart.value) return;
 
-                        // Guard: make sure a variant is selected when variants exist
                         if (colorGroups.value.length > 0 && !selectedVariant.value) {
                             showToast('Please select a colour and size first.', 'warning');
                             return;
@@ -829,21 +840,13 @@
 
                             if (!data.success) {
                                 showToast(data.message || 'Please Login', 'error');
-
-                                // Wait 1.5 seconds so the toast is readable
                                 setTimeout(() => {
                                     window.location.href = '/customer/login';
                                 }, 500);
-
                                 return;
                             }
                             showToast(data.message || 'Added to cart!', 'success');
-
-                            // Update any cart-count badge in the nav if it exists
-                            const badge = document.querySelector('[data-cart-count]');
-                            if (badge && data.cart?.summary?.total_quantity !== undefined) {
-                                badge.textContent = data.cart.summary.total_quantity;
-                            }
+                            updateCartBadge();   // ← sync header badge
 
                         } catch (err) {
                             const message =
@@ -876,7 +879,7 @@
                         galleryImages, mainImage, isDescExpanded, isAddingToCart,
                         descLength: descLengthRef,
                         // Computed
-                        currentOptions, currentPrice, stockInfo, isOutOfStock,
+                        currentOptions, currentPrice, currentOriginalPrice, stockInfo, isOutOfStock,
                         // Methods
                         isLightColor, isVariantOutOfStock,
                         selectColor, selectVariant, setMainImage, nextImage, prevImage,
@@ -888,4 +891,4 @@
         </script>
     {% endraw %}
 
-{% endblock %}
+{% endblock %}s
