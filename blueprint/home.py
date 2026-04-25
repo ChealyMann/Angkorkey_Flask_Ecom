@@ -141,13 +141,13 @@ def home():
     products = Product.query.options(subqueryload(Product.variants)).limit(4).all()
     products = add_price_range(products)
 
-    # promotions = Promotion.query.filter_by(is_active=True).all()
+    promotions = Promotion.query.filter_by(is_active=True).all()
     categories = Category.query.limit(4).all()
 
     return render_template(
         "frontend/pages/index.html",
         products=products,
-        # promotions=promotions,
+        promotions=promotions,
         categories=categories
     )
 
